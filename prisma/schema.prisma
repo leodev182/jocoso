@@ -1,0 +1,66 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── AUTH DOMAIN ────────────────────────────────────────────────────────────
+
+enum Role {
+  ADMIN
+  SUPPORT
+  CUSTOMER
+}
+
+model User {
+  id               String         @id @default(uuid())
+  email            String         @unique
+  passwordHash     String
+  role             Role           @default(CUSTOMER)
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  refreshTokens    RefreshToken[]
+  auditLogs        AuditLog[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String
+  action       String
+  resource     String
+  resourceId   String?
+  changes      Json?
+  ip           String?
+  userAgent    String?
+  status       String   @default("success")
+  errorMessage String?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([resource, resourceId])
+  @@map("audit_logs")
+}
