@@ -7,7 +7,7 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── AUTH DOMAIN ────────────────────────────────────────────────────────────
+// ─── AUTH DOMAIN ─────────────────────────────────────────────────────────────
 
 enum Role {
   ADMIN
@@ -32,12 +32,12 @@ model User {
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
-  tokenHash String   @unique
+  tokenHash String    @unique
   expiresAt DateTime
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -63,4 +63,88 @@ model AuditLog {
   @@index([userId])
   @@index([resource, resourceId])
   @@map("audit_logs")
+}
+
+// ─── PRODUCTS DOMAIN ─────────────────────────────────────────────────────────
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  PAUSED
+}
+
+model Product {
+  id          String         @id @default(uuid())
+  title       String
+  description String?
+  status      ProductStatus  @default(ACTIVE)
+  mlItemId    String?        @unique
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  variants    ProductVariant[]
+
+  @@map("products")
+}
+
+model ProductVariant {
+  id            String             @id @default(uuid())
+  productId     String
+  sku           String             @unique
+  price         Decimal            @db.Decimal(10, 2)
+  stock         Int                @default(0)
+  mlVariationId String?            @unique
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  product        Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributes     VariantAttribute[]
+  stockMovements StockMovement[]
+
+  @@index([productId])
+  @@map("product_variants")
+}
+
+model VariantAttribute {
+  id        String         @id @default(uuid())
+  variantId String
+  name      String
+  value     String
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, name])
+  @@map("variant_attributes")
+}
+
+// ─── STOCK DOMAIN ────────────────────────────────────────────────────────────
+
+enum StockSource {
+  WEB
+  ML
+  ADMIN
+}
+
+enum ReferenceType {
+  ORDER
+  ML_SALE
+  MANUAL
+}
+
+model StockMovement {
+  id            String        @id @default(uuid())
+  variantId     String
+  quantity      Int
+  source        StockSource
+  referenceType ReferenceType
+  referenceId   String?
+  externalId    String?       @unique
+  userId        String?
+  createdAt     DateTime      @default(now())
+
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+
+  @@index([variantId])
+  @@index([referenceId])
+  @@map("stock_movements")
 }
