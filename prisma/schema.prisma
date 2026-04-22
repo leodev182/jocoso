@@ -78,7 +78,7 @@ model Product {
   title       String
   description String?
   status      ProductStatus  @default(ACTIVE)
-  mlItemId    String?        @unique
+  mlItemId    String?
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
@@ -93,7 +93,7 @@ model ProductVariant {
   sku           String             @unique
   price         Decimal            @db.Decimal(10, 2)
   stock         Int                @default(0)
-  mlVariationId String?            @unique
+  mlVariationId String?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
 
