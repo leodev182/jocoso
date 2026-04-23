@@ -229,3 +229,17 @@ model PaymentEventLog {
   @@index([paymentId])
   @@map("payment_event_logs")
 }
+
+// ─── MERCADOLIBRE INTEGRATION ─────────────────────────────────────────────────
+
+model MlToken {
+  id           String   @id @default(uuid())
+  sellerId     String   @unique  // ML user_id of the authenticated seller
+  accessToken  String
+  refreshToken String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("ml_tokens")
+}

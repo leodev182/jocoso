@@ -22,6 +22,11 @@ export class ProductVariantPrismaRepository implements IProductVariantRepository
     return rows.map((r) => this.toEntity(r));
   }
 
+  async findByMlVariationId(mlVariationId: string): Promise<ProductVariant | null> {
+    const row = await this.prisma.productVariant.findFirst({ where: { mlVariationId }, include: { attributes: true } });
+    return row ? this.toEntity(row) : null;
+  }
+
   async save(variant: ProductVariant): Promise<void> {
     const d = variant.toPersistence();
     await this.prisma.productVariant.create({
