@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { Logger } from 'nestjs-pino';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 
@@ -27,7 +28,10 @@ async function bootstrap() {
     }),
   );
 
+  app.useLogger(app.get(Logger));
+
   const port = config.get<number>('PORT', 3000);
   await app.listen(port);
+  app.get(Logger).log(`App running on port ${port}`, 'Bootstrap');
 }
 bootstrap();
