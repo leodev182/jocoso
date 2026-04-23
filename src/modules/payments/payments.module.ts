@@ -7,6 +7,8 @@ import { RejectPaymentUseCase } from '../../application/payments/use-cases/rejec
 import { CancelPaymentUseCase } from '../../application/payments/use-cases/cancel-payment.usecase';
 import { HandleWebhookUseCase } from '../../application/payments/use-cases/handle-webhook.usecase';
 import { PaymentPrismaRepository } from '../../infrastructure/payments/payment.prisma-repo';
+import { MpClient } from '../../integrations/mercadopago/mp.client';
+import { MpWebhookValidator } from '../../integrations/mercadopago/mp-webhook.validator';
 import { PaymentsController } from '../../interfaces/http/payments/payments.controller';
 import { OrdersModule } from '../orders/orders.module';
 
@@ -20,6 +22,8 @@ import { OrdersModule } from '../orders/orders.module';
     RejectPaymentUseCase,
     CancelPaymentUseCase,
     HandleWebhookUseCase,
+    MpClient,
+    MpWebhookValidator,
     { provide: PAYMENT_REPOSITORY, useClass: PaymentPrismaRepository },
   ],
 })
