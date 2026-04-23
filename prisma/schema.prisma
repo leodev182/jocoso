@@ -230,6 +230,19 @@ model PaymentEventLog {
   @@map("payment_event_logs")
 }
 
+// ─── OBSERVABILITY ───────────────────────────────────────────────────────────
+
+model ProductView {
+  id        String   @id @default(uuid())
+  productId String
+  userId    String?  // null = anonymous
+  viewedAt  DateTime @default(now())
+
+  @@index([productId])
+  @@index([productId, viewedAt])
+  @@map("product_views")
+}
+
 // ─── MERCADOLIBRE INTEGRATION ─────────────────────────────────────────────────
 
 model MlToken {
