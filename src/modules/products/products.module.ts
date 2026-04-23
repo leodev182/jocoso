@@ -26,6 +26,6 @@ import { ProductsController } from '../../interfaces/http/products/products.cont
     { provide: PRODUCT_VARIANT_REPOSITORY, useClass: ProductVariantPrismaRepository },
     { provide: PRODUCT_VIEW_REPOSITORY, useClass: ProductViewPrismaRepository },
   ],
-  exports: [PRODUCT_VARIANT_REPOSITORY],
+  exports: [PRODUCT_REPOSITORY, PRODUCT_VARIANT_REPOSITORY],
 })
 export class ProductsModule {}
