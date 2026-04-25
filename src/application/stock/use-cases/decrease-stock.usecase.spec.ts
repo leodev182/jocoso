@@ -58,6 +58,22 @@ describe('DecreaseStockUseCase', () => {
     expect(mockStockRepo.decreaseWithLock).not.toHaveBeenCalled();
   });
 
+  it('bloquea venta WEB cuando el restante quedaría bajo la reserva ML', async () => {
+    // stock=4, pide=2 → remaining=2 < 3 → bloqueado
+    mockStockRepo.findByVariantId.mockResolvedValue(Stock.reconstitute('v-1', 4));
+    await expect(useCase.execute({ ...baseCmd, source: StockSource.WEB, quantity: 2 }))
+      .rejects.toThrow(UnprocessableEntityException);
+    expect(mockStockRepo.decreaseWithLock).not.toHaveBeenCalled();
+  });
+
+  it('permite venta ML aunque consuma la reserva', async () => {
+    // stock=3, fuente ML → sin restricción de reserva
+    mockStockRepo.findByVariantId.mockResolvedValue(Stock.reconstitute('v-1', 3));
+    mockStockRepo.decreaseWithLock.mockResolvedValue(undefined);
+    await expect(useCase.execute({ ...baseCmd, source: StockSource.ML, quantity: 3 })).resolves.not.toThrow();
+    expect(mockStockRepo.decreaseWithLock).toHaveBeenCalledTimes(1);
+  });
+
   it('is idempotent — skips if externalId already processed', async () => {
     mockMovementRepo.findByExternalId.mockResolvedValue({ id: 'existing-movement' });
 

@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Param, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { CreateOrderUseCase } from '../../../application/orders/use-cases/create-order.usecase';
 import { GetOrderUseCase } from '../../../application/orders/use-cases/get-order.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
+import { Roles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { CreateOrderDto } from './dto/create-order.dto';
+import { Role } from '../../../domain/auth/entities/user.entity';
 
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
@@ -12,6 +15,14 @@ export class OrdersController {
     private readonly createOrder: CreateOrderUseCase,
     private readonly getOrder: GetOrderUseCase,
   ) {}
+
+  // Admin: lista todas las órdenes
+  @Get()
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPPORT)
+  listAll(@Query('status') status?: string) {
+    return this.getOrder.listAll(status);
+  }
 
   @Post()
   create(@Body() dto: CreateOrderDto, @CurrentUser() user: { id: string }) {

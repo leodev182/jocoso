@@ -31,7 +31,7 @@ export class DecreaseStockUseCase {
 
     const stock = await this.stockRepo.findByVariantId(cmd.variantId);
     this.stockDomain.assertExists(stock, cmd.variantId);
-    this.stockDomain.validateDecrease(stock!, cmd.quantity);
+    this.stockDomain.validateDecrease(stock!, cmd.quantity, cmd.source);
 
     const movement = StockMovement.create({
       variantId: cmd.variantId,

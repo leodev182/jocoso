@@ -17,6 +17,15 @@ export class OrderPrismaRepository implements IOrderRepository {
     return rows.map((r) => this.toEntity(r));
   }
 
+  async findAll(status?: string): Promise<Order[]> {
+    const rows = await this.prisma.order.findMany({
+      where: status ? { status: status as any } : undefined,
+      include: { items: true },
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map((r) => this.toEntity(r));
+  }
+
   async save(order: Order): Promise<void> {
     const d = order.toPersistence();
     await this.prisma.order.create({

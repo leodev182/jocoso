@@ -18,4 +18,9 @@ export class GetOrderUseCase {
     const orders = await this.orderRepo.findByUserId(userId);
     return orders.map((o) => o.toPersistence());
   }
+
+  async listAll(status?: string) {
+    const orders = await this.orderRepo.findAll(status);
+    return orders.map((o) => o.toPersistence());
+  }
 }
