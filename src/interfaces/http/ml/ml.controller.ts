@@ -2,6 +2,7 @@ import {
   Controller, Get, Post, Query, Body, Param,
   Redirect, HttpCode, HttpStatus, UseGuards, Logger,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { MlAuthService } from '../../../integrations/mercadolibre/ml-auth.service';
 import { HandleMlOrderUseCase } from '../../../application/ml/use-cases/handle-ml-order.usecase';
 import { SyncProductToMlUseCase } from '../../../application/ml/use-cases/sync-product-to-ml.usecase';
@@ -42,6 +43,7 @@ export class MlController {
   // ─── Webhooks ──────────────────────────────────────────────────────────────
 
   @Post('webhooks')
+  @SkipThrottle() // MercadoLibre llama este endpoint — no limitar IPs externas de su infraestructura
   @HttpCode(HttpStatus.OK)
   async webhook(@Body() dto: MlWebhookDto) {
     this.logger.log(`ML webhook: topic=${dto.topic} resource=${dto.resource}`);

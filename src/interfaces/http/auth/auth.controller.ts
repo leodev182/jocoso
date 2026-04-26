@@ -1,4 +1,5 @@
 import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { RegisterUseCase } from '../../../application/auth/use-cases/register.usecase';
 import { LoginUseCase } from '../../../application/auth/use-cases/login.usecase';
 import { RefreshUseCase } from '../../../application/auth/use-cases/refresh.usecase';
@@ -12,6 +13,9 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
 
+// Login y register usan el throttle estricto: 10 req/min por IP
+// Previene brute force sin afectar uso normal
+@Throttle({ strict: { ttl: 60_000, limit: 10 } })
 @Controller('auth')
 export class AuthController {
   constructor(

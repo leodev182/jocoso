@@ -2,6 +2,7 @@ import {
   Controller, Post, Body, Param, Headers, UseGuards,
   HttpCode, HttpStatus, ParseUUIDPipe, UnauthorizedException, Logger,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { InitiatePaymentUseCase } from '../../../application/payments/use-cases/initiate-payment.usecase';
 import { HandleWebhookUseCase } from '../../../application/payments/use-cases/handle-webhook.usecase';
 import { CancelPaymentUseCase } from '../../../application/payments/use-cases/cancel-payment.usecase';
@@ -29,6 +30,7 @@ export class PaymentsController {
   }
 
   @Post('webhook')
+  @SkipThrottle() // MercadoPago llama este endpoint — no limitar IPs externas de su infraestructura
   @HttpCode(HttpStatus.OK)
   async webhook(
     @Body() body: { type: string; data: { id: string } },
