@@ -12,12 +12,18 @@ export class ProductPrismaRepository implements IProductRepository {
     return row ? this.toEntity(row) : null;
   }
 
-  async findAll(status?: string): Promise<Product[]> {
-    const rows = await this.prisma.product.findMany({
-      where: status ? { status: status as any } : undefined,
-      orderBy: { createdAt: 'desc' },
-    });
-    return rows.map((r) => this.toEntity(r));
+  async findAll(status?: string, page = 1, limit = 20): Promise<{ products: Product[]; total: number }> {
+    const where = status ? { status: status as any } : undefined;
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+    return { products: rows.map((r) => this.toEntity(r)), total };
   }
 
   async save(product: Product): Promise<void> {

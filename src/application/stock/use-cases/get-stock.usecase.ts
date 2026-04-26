@@ -17,9 +17,11 @@ export class GetStockUseCase {
     return { variantId, quantity: stock!.getQuantity() };
   }
 
-  async getMovements(variantId: string, limit = 50) {
+  async getMovements(variantId: string, page = 1, limit = 20) {
     const stock = await this.stockRepo.findByVariantId(variantId);
     this.stockDomain.assertExists(stock, variantId);
-    return this.movementRepo.findByVariantId(variantId, limit);
+    const movements = await this.movementRepo.findByVariantId(variantId, limit, (page - 1) * limit);
+    const total = movements.length < limit && page === 1 ? movements.length : undefined;
+    return { data: movements, page, limit, ...(total !== undefined && { total, totalPages: 1 }) };
   }
 }

@@ -16,8 +16,14 @@ export class GetProductUseCase {
     return { ...product.toPersistence(), variants: variants.map((v) => v.toPersistence()) };
   }
 
-  async listAll(status?: string) {
-    const products = await this.productRepo.findAll(status);
-    return products.map((p) => p.toPersistence());
+  async listAll(status?: string, page = 1, limit = 20) {
+    const { products, total } = await this.productRepo.findAll(status, page, limit);
+    return {
+      data: products.map((p) => p.toPersistence()),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 }

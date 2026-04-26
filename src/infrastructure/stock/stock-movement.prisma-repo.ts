@@ -12,11 +12,12 @@ export class StockMovementPrismaRepository implements IStockMovementRepository {
     return row ? this.toEntity(row) : null;
   }
 
-  async findByVariantId(variantId: string, limit = 50): Promise<StockMovement[]> {
+  async findByVariantId(variantId: string, limit = 20, skip = 0): Promise<StockMovement[]> {
     const rows = await this.prisma.stockMovement.findMany({
       where: { variantId },
       orderBy: { createdAt: 'desc' },
       take: limit,
+      skip,
     });
     return rows.map((r) => this.toEntity(r));
   }

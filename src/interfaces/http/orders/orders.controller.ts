@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ValidationPipe } from '@nestjs/common';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateOrderUseCase } from '../../../application/orders/use-cases/create-order.usecase';
 import { GetOrderUseCase } from '../../../application/orders/use-cases/get-order.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
@@ -20,8 +21,11 @@ export class OrdersController {
   @Get()
   @UseGuards(RolesGuard)
   @Roles(Role.ADMIN, Role.SUPPORT)
-  listAll(@Query('status') status?: string) {
-    return this.getOrder.listAll(status);
+  listAll(
+    @Query('status') status?: string,
+    @Query(new ValidationPipe({ transform: true, whitelist: true })) pagination?: PaginationDto,
+  ) {
+    return this.getOrder.listAll(status, pagination?.page, pagination?.limit);
   }
 
   @Post()
@@ -30,8 +34,11 @@ export class OrdersController {
   }
 
   @Get('my')
-  getMyOrders(@CurrentUser() user: { id: string }) {
-    return this.getOrder.getByUser(user.id);
+  getMyOrders(
+    @CurrentUser() user: { id: string },
+    @Query(new ValidationPipe({ transform: true, whitelist: true })) pagination?: PaginationDto,
+  ) {
+    return this.getOrder.getByUser(user.id, pagination?.page, pagination?.limit);
   }
 
   @Get(':id')

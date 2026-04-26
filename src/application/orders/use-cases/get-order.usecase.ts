@@ -14,13 +14,13 @@ export class GetOrderUseCase {
     return order.toPersistence();
   }
 
-  async getByUser(userId: string) {
-    const orders = await this.orderRepo.findByUserId(userId);
-    return orders.map((o) => o.toPersistence());
+  async getByUser(userId: string, page = 1, limit = 20) {
+    const { orders, total } = await this.orderRepo.findByUserId(userId, page, limit);
+    return { data: orders.map((o) => o.toPersistence()), total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
-  async listAll(status?: string) {
-    const orders = await this.orderRepo.findAll(status);
-    return orders.map((o) => o.toPersistence());
+  async listAll(status?: string, page = 1, limit = 20) {
+    const { orders, total } = await this.orderRepo.findAll(status, page, limit);
+    return { data: orders.map((o) => o.toPersistence()), total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }

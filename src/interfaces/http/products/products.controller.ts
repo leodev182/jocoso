@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ParseIntPipe, DefaultValuePipe, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ParseIntPipe, DefaultValuePipe, Request, ValidationPipe } from '@nestjs/common';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateProductUseCase } from '../../../application/products/use-cases/create-product.usecase';
 import { CreateVariantUseCase } from '../../../application/products/use-cases/create-variant.usecase';
 import { GetProductUseCase } from '../../../application/products/use-cases/get-product.usecase';
@@ -24,8 +25,11 @@ export class ProductsController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPPORT)
-  list(@Query('status') status?: string) {
-    return this.getProduct.listAll(status);
+  list(
+    @Query('status') status?: string,
+    @Query(new ValidationPipe({ transform: true, whitelist: true })) pagination?: PaginationDto,
+  ) {
+    return this.getProduct.listAll(status, pagination?.page, pagination?.limit);
   }
 
   @Get('trending')

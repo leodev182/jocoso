@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, HttpCode, HttpStatus, ParseUUIDPipe, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, HttpCode, HttpStatus, ParseUUIDPipe, ValidationPipe } from '@nestjs/common';
+import { PaginationDto } from '../common/dto/pagination.dto';
 import { DecreaseStockUseCase } from '../../../application/stock/use-cases/decrease-stock.usecase';
 import { IncreaseStockUseCase } from '../../../application/stock/use-cases/increase-stock.usecase';
 import { GetStockUseCase } from '../../../application/stock/use-cases/get-stock.usecase';
@@ -27,9 +28,9 @@ export class StockController {
   @Roles('ADMIN', 'SUPPORT')
   getMovements(
     @Param('variantId', ParseUUIDPipe) variantId: string,
-    @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
+    @Query(new ValidationPipe({ transform: true, whitelist: true })) pagination?: PaginationDto,
   ) {
-    return this.getStock.getMovements(variantId, limit);
+    return this.getStock.getMovements(variantId, pagination?.page, pagination?.limit);
   }
 
   @Post('decrease')
