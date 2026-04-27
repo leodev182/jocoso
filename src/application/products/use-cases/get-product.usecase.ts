@@ -16,8 +16,8 @@ export class GetProductUseCase {
     return { ...product.toPersistence(), variants: variants.map((v) => v.toPersistence()) };
   }
 
-  async listAll(status?: string, page = 1, limit = 20) {
-    const { products, total } = await this.productRepo.findAll(status, page, limit);
+  async listAll(status?: string, page = 1, limit = 20, search?: string) {
+    const { products, total } = await this.productRepo.findAll(status, page, limit, search);
     return {
       data: products.map((p) => p.toPersistence()),
       total,

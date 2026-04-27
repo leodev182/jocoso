@@ -1,5 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ParseIntPipe, DefaultValuePipe, Request, ValidationPipe } from '@nestjs/common';
-import { PaginationDto } from '../common/dto/pagination.dto';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ParseIntPipe, DefaultValuePipe, Request } from '@nestjs/common';
 import { CreateProductUseCase } from '../../../application/products/use-cases/create-product.usecase';
 import { CreateVariantUseCase } from '../../../application/products/use-cases/create-variant.usecase';
 import { GetProductUseCase } from '../../../application/products/use-cases/get-product.usecase';
@@ -10,6 +9,7 @@ import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard'
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreateVariantDto } from './dto/create-variant.dto';
+import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import { Role } from '../../../domain/auth/entities/user.entity';
 
 @Controller('products')
@@ -25,11 +25,8 @@ export class ProductsController {
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN, Role.SUPPORT)
-  list(
-    @Query('status') status?: string,
-    @Query(new ValidationPipe({ transform: true, whitelist: true })) pagination?: PaginationDto,
-  ) {
-    return this.getProduct.listAll(status, pagination?.page, pagination?.limit);
+  list(@Query() query: ListProductsQueryDto) {
+    return this.getProduct.listAll(query.status, query.page, query.limit, query.search);
   }
 
   @Get('trending')

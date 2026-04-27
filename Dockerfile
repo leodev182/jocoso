@@ -13,7 +13,7 @@ RUN pnpm install --frozen-lockfile
 # Copia fuentes y genera el cliente Prisma
 COPY . .
 RUN pnpm prisma generate
-RUN pnpm build
+RUN pnpm build && ls -la dist/
 
 # ── Stage 2: runtime ──────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
@@ -31,7 +31,12 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/generated ./generated
 COPY --from=builder /app/prisma ./prisma
 
+# Config de Prisma para prod (sin ts-node) y entrypoint
+COPY prisma.config.js ./prisma.config.js
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x docker-entrypoint.sh
+
 ENV NODE_ENV=production
 EXPOSE 3000
 
-CMD ["node", "dist/main"]
+ENTRYPOINT ["./docker-entrypoint.sh"]

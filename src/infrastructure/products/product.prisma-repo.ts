@@ -12,8 +12,10 @@ export class ProductPrismaRepository implements IProductRepository {
     return row ? this.toEntity(row) : null;
   }
 
-  async findAll(status?: string, page = 1, limit = 20): Promise<{ products: Product[]; total: number }> {
-    const where = status ? { status: status as any } : undefined;
+  async findAll(status?: string, page = 1, limit = 20, search?: string): Promise<{ products: Product[]; total: number }> {
+    const where: any = {};
+    if (status) where.status = status;
+    if (search) where.title = { contains: search, mode: 'insensitive' };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
