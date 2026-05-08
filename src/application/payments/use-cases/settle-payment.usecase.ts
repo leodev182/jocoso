@@ -17,6 +17,7 @@ export class SettlePaymentUseCase {
     const payment = await this.paymentRepo.findById(paymentId);
     if (!payment) throw new NotFoundException(`Payment ${paymentId} not found`);
 
+    this.paymentDomain.assertApproved(payment);
     const prevStatus = payment.getStatus();
     payment.settle();
 
