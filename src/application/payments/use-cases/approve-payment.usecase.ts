@@ -4,6 +4,8 @@ import { PaymentDomainService } from '../../../domain/payments/services/payment.
 import { PaymentEventLog } from '../../../domain/payments/entities/payment-event-log.entity';
 import { PaymentStatus } from '../../../domain/payments/entities/payment.entity';
 import { IOrderRepository, ORDER_REPOSITORY } from '../../../domain/orders/repositories/order.repository';
+import { DecreaseStockUseCase } from '../../stock/use-cases/decrease-stock.usecase';
+import { StockSource, ReferenceType } from '../../../domain/stock/entities/stock-movement.entity';
 
 @Injectable()
 export class ApprovePaymentUseCase {
@@ -11,6 +13,7 @@ export class ApprovePaymentUseCase {
     @Inject(PAYMENT_REPOSITORY) private readonly paymentRepo: IPaymentRepository,
     @Inject(ORDER_REPOSITORY) private readonly orderRepo: IOrderRepository,
     private readonly paymentDomain: PaymentDomainService,
+    private readonly decreaseStock: DecreaseStockUseCase,
   ) {}
 
   async execute(paymentId: string, gatewayId: string, payload?: Record<string, any>): Promise<void> {
@@ -25,11 +28,22 @@ export class ApprovePaymentUseCase {
     const log = PaymentEventLog.create(paymentId, prevStatus, PaymentStatus.APPROVED, 'webhook', payload);
     await this.paymentRepo.update(payment, log);
 
-    // Confirm order
     const order = await this.orderRepo.findById(payment.getOrderId());
-    if (order) {
-      order.confirm();
-      await this.orderRepo.update(order);
+    if (!order) return;
+
+    order.confirm();
+    await this.orderRepo.update(order);
+
+    // Decrease stock for each item — idempotent via externalId
+    for (const item of order.getItems()) {
+      await this.decreaseStock.execute({
+        variantId: item.variantId,
+        quantity: item.quantity,
+        source: StockSource.WEB,
+        referenceType: ReferenceType.ORDER,
+        referenceId: order.getId(),
+        externalId: `web-payment-${paymentId}-${item.variantId}`,
+      });
     }
   }
 }

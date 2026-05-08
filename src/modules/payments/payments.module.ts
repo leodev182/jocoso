@@ -11,9 +11,10 @@ import { MpClient } from '../../integrations/mercadopago/mp.client';
 import { MpWebhookValidator } from '../../integrations/mercadopago/mp-webhook.validator';
 import { PaymentsController } from '../../interfaces/http/payments/payments.controller';
 import { OrdersModule } from '../orders/orders.module';
+import { StockModule } from '../stock/stock.module';
 
 @Module({
-  imports: [OrdersModule],
+  imports: [OrdersModule, StockModule],
   controllers: [PaymentsController],
   providers: [
     PaymentDomainService,
