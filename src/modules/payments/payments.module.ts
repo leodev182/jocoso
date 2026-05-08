@@ -6,6 +6,7 @@ import { ApprovePaymentUseCase } from '../../application/payments/use-cases/appr
 import { RejectPaymentUseCase } from '../../application/payments/use-cases/reject-payment.usecase';
 import { CancelPaymentUseCase } from '../../application/payments/use-cases/cancel-payment.usecase';
 import { HandleWebhookUseCase } from '../../application/payments/use-cases/handle-webhook.usecase';
+import { SettlePaymentUseCase } from '../../application/payments/use-cases/settle-payment.usecase';
 import { PaymentPrismaRepository } from '../../infrastructure/payments/payment.prisma-repo';
 import { MpClient } from '../../integrations/mercadopago/mp.client';
 import { MpWebhookValidator } from '../../integrations/mercadopago/mp-webhook.validator';
@@ -23,6 +24,7 @@ import { StockModule } from '../stock/stock.module';
     RejectPaymentUseCase,
     CancelPaymentUseCase,
     HandleWebhookUseCase,
+    SettlePaymentUseCase,
     MpClient,
     MpWebhookValidator,
     { provide: PAYMENT_REPOSITORY, useClass: PaymentPrismaRepository },
