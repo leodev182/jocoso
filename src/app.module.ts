@@ -1,19 +1,34 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { BullModule } from '@nestjs/bullmq';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { PrismaModule } from './infrastructure/database/prisma.module';
 import { LoggerModule } from './infrastructure/logger/logger.module';
+import { AuditModule } from './infrastructure/audit/audit.module';
+import { AuditInterceptor } from './infrastructure/audit/audit.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { StockModule } from './modules/stock/stock.module';
 import { ProductsModule } from './modules/products/products.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MlModule } from './modules/ml/ml.module';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (config: ConfigService) => ({
+        connection: {
+          host: config.get('REDIS_HOST', 'localhost'),
+          port: config.get<number>('REDIS_PORT', 6379),
+          password: config.get('REDIS_PASSWORD'),
+        },
+      }),
+      inject: [ConfigService],
+    }),
     // Rate limiting global — protege todos los endpoints por defecto
     // Los webhooks de ML y MP usan @SkipThrottle() para no bloquear a los proveedores
     ThrottlerModule.forRoot([
@@ -30,16 +45,18 @@ import { MlModule } from './modules/ml/ml.module';
     ]),
     LoggerModule,
     PrismaModule,
+    AuditModule,
     AuthModule,
     StockModule,
     ProductsModule,
     OrdersModule,
     PaymentsModule,
     MlModule,
+    AdminModule,
   ],
   providers: [
-    // Aplica ThrottlerGuard globalmente a todos los endpoints
     { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
   ],
 })
 export class AppModule {}

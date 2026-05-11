@@ -1,5 +1,6 @@
 import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
+import { Audit } from '../../../infrastructure/audit/audit.decorator';
 import { RegisterUseCase } from '../../../application/auth/use-cases/register.usecase';
 import { LoginUseCase } from '../../../application/auth/use-cases/login.usecase';
 import { RefreshUseCase } from '../../../application/auth/use-cases/refresh.usecase';
@@ -46,6 +47,7 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
+  @Audit({ action: 'LOGOUT', resource: 'auth' })
   @HttpCode(HttpStatus.NO_CONTENT)
   handleLogout(@Body() dto: RefreshDto) {
     return this.logout.execute(dto.refreshToken);

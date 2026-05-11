@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ValidationPipe } from '@nestjs/common';
+import { Audit } from '../../../infrastructure/audit/audit.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateOrderUseCase } from '../../../application/orders/use-cases/create-order.usecase';
 import { GetOrderUseCase } from '../../../application/orders/use-cases/get-order.usecase';
@@ -29,6 +30,7 @@ export class OrdersController {
   }
 
   @Post()
+  @Audit({ action: 'ORDER_CREATE', resource: 'orders' })
   create(@Body() dto: CreateOrderDto, @CurrentUser() user: { id: string }) {
     return this.createOrder.execute({ userId: user.id, items: dto.items });
   }

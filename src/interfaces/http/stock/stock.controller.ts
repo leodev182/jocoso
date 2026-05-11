@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards, HttpCode, HttpStatus, ParseUUIDPipe, ValidationPipe } from '@nestjs/common';
+import { Audit } from '../../../infrastructure/audit/audit.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { DecreaseStockUseCase } from '../../../application/stock/use-cases/decrease-stock.usecase';
 import { IncreaseStockUseCase } from '../../../application/stock/use-cases/increase-stock.usecase';
@@ -35,6 +36,7 @@ export class StockController {
 
   @Post('decrease')
   @Roles('ADMIN')
+  @Audit({ action: 'STOCK_DECREASE', resource: 'stock' })
   @HttpCode(HttpStatus.NO_CONTENT)
   handleDecrease(@Body() dto: DecreaseStockDto) {
     return this.decrease.execute(dto);
@@ -42,6 +44,7 @@ export class StockController {
 
   @Post('increase')
   @Roles('ADMIN')
+  @Audit({ action: 'STOCK_INCREASE', resource: 'stock' })
   @HttpCode(HttpStatus.NO_CONTENT)
   handleIncrease(@Body() dto: IncreaseStockDto) {
     return this.increase.execute(dto);

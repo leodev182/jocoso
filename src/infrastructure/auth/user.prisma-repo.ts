@@ -32,6 +32,18 @@ export class UserPrismaRepository implements IUserRepository {
     });
   }
 
+  async findAll(page: number, limit: number): Promise<{ users: User[]; total: number }> {
+    const [rows, total] = await Promise.all([
+      this.prisma.user.findMany({
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.user.count(),
+    ]);
+    return { users: rows.map((r) => this.toEntity(r)), total };
+  }
+
   async update(user: User): Promise<void> {
     const data = user.toPersistence();
     await this.prisma.user.update({
@@ -40,6 +52,13 @@ export class UserPrismaRepository implements IUserRepository {
         twoFactorSecret: data.twoFactorSecret,
         twoFactorEnabled: data.twoFactorEnabled,
       },
+    });
+  }
+
+  async updateRole(id: string, role: Role): Promise<void> {
+    await this.prisma.user.update({
+      where: { id },
+      data: { role: this.toPrismaRole(role) },
     });
   }
 
