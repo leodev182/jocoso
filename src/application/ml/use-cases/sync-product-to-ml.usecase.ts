@@ -74,6 +74,21 @@ export class SyncProductToMlUseCase {
       }
     }
 
+    // Pull image URLs from ML item and persist them
+    try {
+      const mlItem = await this.mlClient.getItem(created.id);
+      const images = mlItem.pictures?.map((p) => p.secure_url).filter(Boolean) ?? [];
+      if (images.length) {
+        await this.prisma.product.update({
+          where: { id: cmd.productId },
+          data: { images },
+        });
+        this.logger.log(`Product ${cmd.productId}: saved ${images.length} image(s) from ML`);
+      }
+    } catch (err) {
+      this.logger.warn(`Could not pull images from ML for product ${cmd.productId}: ${err.message}`);
+    }
+
     return created.id;
   }
 }

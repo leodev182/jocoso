@@ -31,7 +31,7 @@ export class ProductPrismaRepository implements IProductRepository {
   async save(product: Product): Promise<void> {
     const d = product.toPersistence();
     await this.prisma.product.create({
-      data: { id: d.id, title: d.title, description: d.description, status: d.status as any, mlItemId: d.mlItemId },
+      data: { id: d.id, title: d.title, description: d.description, status: d.status as any, mlItemId: d.mlItemId, images: d.images },
     });
   }
 
@@ -39,7 +39,7 @@ export class ProductPrismaRepository implements IProductRepository {
     const d = product.toPersistence();
     await this.prisma.product.update({
       where: { id: d.id },
-      data: { title: d.title, description: d.description, status: d.status as any, mlItemId: d.mlItemId },
+      data: { title: d.title, description: d.description, status: d.status as any, mlItemId: d.mlItemId, images: d.images },
     });
   }
 
@@ -51,6 +51,7 @@ export class ProductPrismaRepository implements IProductRepository {
     return Product.reconstitute({
       id: row.id, title: row.title, description: row.description,
       status: row.status as ProductStatus, mlItemId: row.mlItemId,
+      images: row.images ?? [],
       createdAt: row.createdAt, updatedAt: row.updatedAt,
     } as ProductProps);
   }

@@ -79,6 +79,7 @@ model Product {
   description String?
   status      ProductStatus  @default(ACTIVE)
   mlItemId    String?
+  images      String[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 

@@ -6,6 +6,7 @@ import { SkipThrottle } from '@nestjs/throttler';
 import { MlAuthService } from '../../../integrations/mercadolibre/ml-auth.service';
 import { HandleMlOrderUseCase } from '../../../application/ml/use-cases/handle-ml-order.usecase';
 import { SyncProductToMlUseCase } from '../../../application/ml/use-cases/sync-product-to-ml.usecase';
+import { PullMlImagesUseCase } from '../../../application/ml/use-cases/pull-ml-images.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -21,6 +22,7 @@ export class MlController {
     private readonly mlAuth: MlAuthService,
     private readonly handleMlOrder: HandleMlOrderUseCase,
     private readonly syncProduct: SyncProductToMlUseCase,
+    private readonly pullImages: PullMlImagesUseCase,
   ) {}
 
   // ─── OAuth2 ────────────────────────────────────────────────────────────────
@@ -71,5 +73,13 @@ export class MlController {
   ) {
     const mlItemId = await this.syncProduct.execute({ productId, ...dto });
     return { mlItemId };
+  }
+
+  @Post('products/:productId/pull-images')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async pullProductImages(@Param('productId') productId: string) {
+    const images = await this.pullImages.execute(productId);
+    return { images };
   }
 }

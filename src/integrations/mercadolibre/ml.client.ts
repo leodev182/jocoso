@@ -62,6 +62,10 @@ export class MlClient {
     }
   }
 
+  async getItem(mlItemId: string): Promise<{ pictures: { secure_url: string }[] }> {
+    return this.get(`/items/${mlItemId}`);
+  }
+
   async getOrder(mlOrderId: string): Promise<any> {
     return this.get(`/orders/${mlOrderId}`);
   }

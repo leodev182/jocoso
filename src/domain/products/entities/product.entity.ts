@@ -12,6 +12,7 @@ export interface ProductProps {
   description: string | null;
   status: ProductStatus;
   mlItemId: string | null;
+  images: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -23,17 +24,18 @@ export class Product {
     private description: string | null,
     private status: ProductStatus,
     private mlItemId: string | null,
+    private images: string[],
     private readonly createdAt: Date,
     private updatedAt: Date,
   ) {}
 
   static create(title: string, description?: string): Product {
     const now = new Date();
-    return new Product(crypto.randomUUID(), title, description ?? null, ProductStatus.ACTIVE, null, now, now);
+    return new Product(crypto.randomUUID(), title, description ?? null, ProductStatus.ACTIVE, null, [], now, now);
   }
 
   static reconstitute(props: ProductProps): Product {
-    return new Product(props.id, props.title, props.description, props.status, props.mlItemId, props.createdAt, props.updatedAt);
+    return new Product(props.id, props.title, props.description, props.status, props.mlItemId, props.images ?? [], props.createdAt, props.updatedAt);
   }
 
   getId(): string { return this.id; }
@@ -41,15 +43,17 @@ export class Product {
   getDescription(): string | null { return this.description; }
   getStatus(): ProductStatus { return this.status; }
   getMlItemId(): string | null { return this.mlItemId; }
+  getImages(): string[] { return this.images; }
 
   updateTitle(title: string): void { this.title = title; this.touch(); }
   updateDescription(desc: string | null): void { this.description = desc; this.touch(); }
   updateStatus(status: ProductStatus): void { this.status = status; this.touch(); }
   assignMlItemId(mlItemId: string): void { this.mlItemId = mlItemId; this.touch(); }
+  setImages(images: string[]): void { this.images = images; this.touch(); }
 
   private touch(): void { this.updatedAt = new Date(); }
 
   toPersistence(): ProductProps {
-    return { id: this.id, title: this.title, description: this.description, status: this.status, mlItemId: this.mlItemId, createdAt: this.createdAt, updatedAt: this.updatedAt };
+    return { id: this.id, title: this.title, description: this.description, status: this.status, mlItemId: this.mlItemId, images: this.images, createdAt: this.createdAt, updatedAt: this.updatedAt };
   }
 }
