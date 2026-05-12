@@ -11,6 +11,7 @@ import { PaginationDto } from '../common/dto/pagination.dto';
 import { ListUsersUseCase } from '../../../application/admin/use-cases/list-users.usecase';
 import { ChangeUserRoleUseCase } from '../../../application/admin/use-cases/change-user-role.usecase';
 import { ListAuditLogsUseCase } from '../../../application/admin/use-cases/list-audit-logs.usecase';
+import { GetAdminStatsUseCase } from '../../../application/admin/use-cases/get-admin-stats.usecase';
 import { ChangeRoleDto } from './dto/change-role.dto';
 
 @Controller('admin')
@@ -21,7 +22,13 @@ export class AdminController {
     private readonly listUsers: ListUsersUseCase,
     private readonly changeRole: ChangeUserRoleUseCase,
     private readonly listAuditLogs: ListAuditLogsUseCase,
+    private readonly getStats: GetAdminStatsUseCase,
   ) {}
+
+  @Get('stats')
+  getAdminStats() {
+    return this.getStats.execute();
+  }
 
   @Get('users')
   getUsers(
