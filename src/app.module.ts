@@ -14,6 +14,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MlModule } from './modules/ml/ml.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { HealthController } from './interfaces/http/health/health.controller';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { AdminModule } from './modules/admin/admin.module';
     MlModule,
     AdminModule,
   ],
+  controllers: [HealthController],
   providers: [
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_INTERCEPTOR, useClass: AuditInterceptor },
