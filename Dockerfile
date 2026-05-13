@@ -20,14 +20,8 @@ FROM node:22-alpine AS runner
 
 WORKDIR /app
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Solo dependencias de producción
-COPY package.json pnpm-lock.yaml ./
-COPY .pnpmfile-build-approvals.json ./
-RUN pnpm install --frozen-lockfile --prod
-
-# Artefactos del build y cliente Prisma generado
+# Artefactos del build, node_modules y cliente Prisma desde el builder
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/generated ./generated
 COPY --from=builder /app/prisma ./prisma
