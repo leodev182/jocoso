@@ -1,7 +1,7 @@
 'use strict';
 
 const path = require('path');
-const { PrismaClient } = require(path.join(__dirname, '../generated/prisma/client'));
+const { PrismaClient } = require(path.join(__dirname, '../generated/prisma'));
 const { PrismaPg } = require('@prisma/adapter-pg');
 const bcrypt = require('bcrypt');
 
