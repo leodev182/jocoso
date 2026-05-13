@@ -7,7 +7,7 @@ WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Copia manifiestos primero para aprovechar cache de capas
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml .pnpmfile-build-approvals.json ./
 RUN pnpm install --frozen-lockfile
 
 # Copia fuentes y genera el cliente Prisma
