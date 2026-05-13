@@ -1,29 +1,34 @@
 'use strict';
 
 const path = require('path');
-const { PrismaClient } = require(path.join(__dirname, '../dist/generated/prisma/client'));
+const { PrismaClient } = require(path.join(__dirname, '../generated/prisma/client'));
 const { PrismaPg } = require('@prisma/adapter-pg');
 const bcrypt = require('bcrypt');
+
+const ADMINS = [
+  'duquescalante@gmail.com',
+  'aroken182@gmail.com',
+  'admin@jocoso.cl',
+];
 
 async function main() {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
   const prisma = new PrismaClient({ adapter });
 
-  const email = process.env.ADMIN_EMAIL ?? 'admin@jocoso.cl';
   const password = process.env.ADMIN_PASSWORD ?? 'Admin1234!Jocoso';
+  const passwordHash = await bcrypt.hash(password, 12);
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing) {
-    console.log(`Admin already exists: ${email}`);
-    await prisma.$disconnect();
-    return;
+  for (const email of ADMINS) {
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing) {
+      console.log(`Already exists: ${email}`);
+      continue;
+    }
+    await prisma.user.create({ data: { email, passwordHash, role: 'ADMIN' } });
+    console.log(`Admin created: ${email}`);
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
-  await prisma.user.create({ data: { email, passwordHash, role: 'ADMIN' } });
-
-  console.log(`Admin created: ${email}`);
-  console.log('IMPORTANT: change the password after first login.');
+  console.log('IMPORTANT: change passwords after first login.');
   await prisma.$disconnect();
 }
 
