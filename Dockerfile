@@ -4,7 +4,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Instala pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@9 --activate
 
 # Copia manifiestos primero para aprovechar cache de capas
 COPY package.json pnpm-lock.yaml .pnpmfile-build-approvals.json ./
