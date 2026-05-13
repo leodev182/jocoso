@@ -24,6 +24,7 @@ RUN corepack enable && corepack prepare pnpm@latest --activate
 
 # Solo dependencias de producción
 COPY package.json pnpm-lock.yaml ./
+COPY .pnpmfile-build-approvals.json ./
 RUN pnpm install --frozen-lockfile --prod
 
 # Artefactos del build y cliente Prisma generado
