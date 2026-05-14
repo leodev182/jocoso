@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Query, Body, Param,
-  Redirect, HttpCode, HttpStatus, UseGuards, Logger,
+  HttpCode, HttpStatus, UseGuards, Logger,
 } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
 import { MlAuthService } from '../../../integrations/mercadolibre/ml-auth.service';
@@ -30,7 +30,6 @@ export class MlController {
   @Get('oauth/authorize')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
-  @Redirect()
   authorize() {
     const url = this.mlAuth.getAuthorizeUrl();
     return { url };
