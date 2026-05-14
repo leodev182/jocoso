@@ -1,7 +1,8 @@
 import {
   Controller, Get, Post, Query, Body, Param,
-  HttpCode, HttpStatus, UseGuards, Logger,
+  HttpCode, HttpStatus, UseGuards, Logger, Redirect,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { SkipThrottle } from '@nestjs/throttler';
 import { MlAuthService } from '../../../integrations/mercadolibre/ml-auth.service';
 import { HandleMlOrderUseCase } from '../../../application/ml/use-cases/handle-ml-order.usecase';
@@ -23,6 +24,7 @@ export class MlController {
     private readonly handleMlOrder: HandleMlOrderUseCase,
     private readonly syncProduct: SyncProductToMlUseCase,
     private readonly pullImages: PullMlImagesUseCase,
+    private readonly config: ConfigService,
   ) {}
 
   // ─── OAuth2 ────────────────────────────────────────────────────────────────
@@ -36,9 +38,11 @@ export class MlController {
   }
 
   @Get('oauth/callback')
+  @Redirect()
   async callback(@Query('code') code: string) {
     const tokens = await this.mlAuth.exchangeCode(code);
-    return { message: 'ML connected successfully', sellerId: tokens.sellerId };
+    const opsUrl = this.config.get('OPS_URL', 'https://ops.jocoso.cl');
+    return { url: `${opsUrl}/mercadolibre?connected=true&sellerId=${tokens.sellerId}` };
   }
 
   // ─── Webhooks ──────────────────────────────────────────────────────────────
