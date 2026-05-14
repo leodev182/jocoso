@@ -30,9 +30,9 @@ export class ProductVariant {
     private updatedAt: Date,
   ) {}
 
-  static create(productId: string, sku: string, price: number, attributes: VariantAttribute[] = []): ProductVariant {
+  static create(productId: string, sku: string, price: number, attributes: VariantAttribute[] = [], initialStock = 0): ProductVariant {
     const now = new Date();
-    return new ProductVariant(crypto.randomUUID(), productId, sku, price, 0, null, attributes, now, now);
+    return new ProductVariant(crypto.randomUUID(), productId, sku, price, initialStock, null, attributes, now, now);
   }
 
   static reconstitute(props: ProductVariantProps): ProductVariant {

@@ -13,6 +13,9 @@ export class CreateVariantDto {
   @IsNumber() @IsPositive()
   price: number;
 
+  @IsOptional() @IsNumber() @IsPositive()
+  stock?: number;
+
   @IsOptional() @IsArray() @ValidateNested({ each: true }) @Type(() => AttributeDto)
   attributes?: AttributeDto[];
 }

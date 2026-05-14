@@ -8,6 +8,9 @@ import { CreateVariantUseCase } from '../../application/products/use-cases/creat
 import { GetProductUseCase } from '../../application/products/use-cases/get-product.usecase';
 import { TrackProductViewUseCase } from '../../application/products/use-cases/track-product-view.usecase';
 import { GetTrendingProductsUseCase } from '../../application/products/use-cases/get-trending-products.usecase';
+import { DeleteProductUseCase } from '../../application/products/use-cases/delete-product.usecase';
+import { DeleteVariantUseCase } from '../../application/products/use-cases/delete-variant.usecase';
+import { UpdateVariantUseCase } from '../../application/products/use-cases/update-variant.usecase';
 import { ProductPrismaRepository } from '../../infrastructure/products/product.prisma-repo';
 import { ProductVariantPrismaRepository } from '../../infrastructure/products/product-variant.prisma-repo';
 import { ProductViewPrismaRepository } from '../../infrastructure/products/product-view.prisma-repo';
@@ -22,6 +25,9 @@ import { ProductsController } from '../../interfaces/http/products/products.cont
     GetProductUseCase,
     TrackProductViewUseCase,
     GetTrendingProductsUseCase,
+    DeleteProductUseCase,
+    DeleteVariantUseCase,
+    UpdateVariantUseCase,
     { provide: PRODUCT_REPOSITORY, useClass: ProductPrismaRepository },
     { provide: PRODUCT_VARIANT_REPOSITORY, useClass: ProductVariantPrismaRepository },
     { provide: PRODUCT_VIEW_REPOSITORY, useClass: ProductViewPrismaRepository },

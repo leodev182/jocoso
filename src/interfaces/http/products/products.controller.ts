@@ -1,14 +1,18 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, ParseUUIDPipe, ParseIntPipe, DefaultValuePipe, Request } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UseGuards, ParseUUIDPipe, ParseIntPipe, DefaultValuePipe, HttpCode, HttpStatus, Request } from '@nestjs/common';
 import { CreateProductUseCase } from '../../../application/products/use-cases/create-product.usecase';
 import { CreateVariantUseCase } from '../../../application/products/use-cases/create-variant.usecase';
 import { GetProductUseCase } from '../../../application/products/use-cases/get-product.usecase';
 import { TrackProductViewUseCase } from '../../../application/products/use-cases/track-product-view.usecase';
 import { GetTrendingProductsUseCase } from '../../../application/products/use-cases/get-trending-products.usecase';
+import { DeleteProductUseCase } from '../../../application/products/use-cases/delete-product.usecase';
+import { DeleteVariantUseCase } from '../../../application/products/use-cases/delete-variant.usecase';
+import { UpdateVariantUseCase } from '../../../application/products/use-cases/update-variant.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreateVariantDto } from './dto/create-variant.dto';
+import { UpdateVariantDto } from './dto/update-variant.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import { Role } from '../../../domain/auth/entities/user.entity';
 
@@ -20,6 +24,9 @@ export class ProductsController {
     private readonly getProduct: GetProductUseCase,
     private readonly trackView: TrackProductViewUseCase,
     private readonly getTrending: GetTrendingProductsUseCase,
+    private readonly deleteProduct: DeleteProductUseCase,
+    private readonly deleteVariant: DeleteVariantUseCase,
+    private readonly updateVariant: UpdateVariantUseCase,
   ) {}
 
   @Get()
@@ -39,7 +46,6 @@ export class ProductsController {
     return this.getTrending.execute(period, limit);
   }
 
-  // Public endpoint — any authenticated user can view a product
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   getById(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
@@ -54,10 +60,37 @@ export class ProductsController {
     return this.createProduct.execute(dto);
   }
 
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(@Param('id', ParseUUIDPipe) id: string) {
+    return this.deleteProduct.execute(id);
+  }
+
   @Post(':id/variants')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   addVariant(@Param('id', ParseUUIDPipe) productId: string, @Body() dto: CreateVariantDto) {
     return this.createVariant.execute({ productId, ...dto });
+  }
+
+  @Patch(':id/variants/:variantId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  editVariant(
+    @Param('variantId', ParseUUIDPipe) variantId: string,
+    @Body() dto: UpdateVariantDto,
+  ) {
+    return this.updateVariant.execute({ variantId, ...dto });
+  }
+
+  @Delete(':id/variants/:variantId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeVariant(@Param('variantId', ParseUUIDPipe) variantId: string) {
+    return this.deleteVariant.execute(variantId);
   }
 }

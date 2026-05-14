@@ -7,6 +7,7 @@ export interface CreateVariantCommand {
   productId: string;
   sku: string;
   price: number;
+  stock?: number;
   attributes?: VariantAttribute[];
 }
 
@@ -24,8 +25,8 @@ export class CreateVariantUseCase {
     const existing = await this.variantRepo.findBySku(cmd.sku);
     if (existing) throw new ConflictException(`SKU ${cmd.sku} already exists`);
 
-    const variant = ProductVariant.create(cmd.productId, cmd.sku, cmd.price, cmd.attributes);
+    const variant = ProductVariant.create(cmd.productId, cmd.sku, cmd.price, cmd.attributes, cmd.stock ?? 0);
     await this.variantRepo.save(variant);
-    return variant;
+    return variant.toPersistence();
   }
 }
