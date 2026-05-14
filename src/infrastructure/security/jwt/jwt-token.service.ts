@@ -8,7 +8,7 @@ export class JwtTokenService implements ITokenService {
   constructor(private readonly jwt: JwtService) {}
 
   generateAccessToken(userId: string, email: string, role: string): string {
-    return this.jwt.sign({ sub: userId, email, role }, { expiresIn: '15m' });
+    return this.jwt.sign({ sub: userId, email, role }, { expiresIn: '8h' });
   }
 
   generateRefreshToken(): string {
