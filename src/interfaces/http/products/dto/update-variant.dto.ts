@@ -2,8 +2,8 @@ import { IsNumber, IsPositive, IsOptional, IsArray, ValidateNested } from 'class
 import { Type } from 'class-transformer';
 
 class AttributeDto {
-  @IsOptional() name?: string;
-  @IsOptional() value?: string;
+  @IsOptional() name: string;
+  @IsOptional() value: string;
 }
 
 export class UpdateVariantDto {

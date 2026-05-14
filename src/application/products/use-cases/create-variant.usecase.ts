@@ -1,5 +1,5 @@
 import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
-import { ProductVariant, VariantAttribute } from '../../../domain/products/entities/product-variant.entity';
+import { ProductVariant, ProductVariantProps, VariantAttribute } from '../../../domain/products/entities/product-variant.entity';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../../domain/products/repositories/product.repository';
 import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '../../../domain/products/repositories/product-variant.repository';
 
@@ -18,7 +18,7 @@ export class CreateVariantUseCase {
     @Inject(PRODUCT_VARIANT_REPOSITORY) private readonly variantRepo: IProductVariantRepository,
   ) {}
 
-  async execute(cmd: CreateVariantCommand): Promise<ProductVariant> {
+  async execute(cmd: CreateVariantCommand): Promise<ProductVariantProps> {
     const product = await this.productRepo.findById(cmd.productId);
     if (!product) throw new NotFoundException(`Product ${cmd.productId} not found`);
 

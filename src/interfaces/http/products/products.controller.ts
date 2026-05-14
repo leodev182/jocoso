@@ -83,7 +83,7 @@ export class ProductsController {
     @Param('variantId', ParseUUIDPipe) variantId: string,
     @Body() dto: UpdateVariantDto,
   ) {
-    return this.updateVariant.execute({ variantId, ...dto });
+    return this.updateVariant.execute({ variantId, price: dto.price, attributes: dto.attributes as any });
   }
 
   @Delete(':id/variants/:variantId')
