@@ -1,14 +1,13 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoggerModule as PinoLoggerModule } from 'nestjs-pino';
-import { Writable } from 'stream';
+import { Transform } from 'stream';
 import { pushEntry } from '../logging/log-store';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const pino = require('pino');
-
-const bufferStream = new Writable({
-  write(chunk: Buffer, _encoding: string, callback: () => void) {
+// Duplica cada línea de log a stdout Y al buffer en memoria
+const duplexStream = new Transform({
+  transform(chunk: Buffer, _encoding: string, callback: () => void) {
+    process.stdout.write(chunk);
     pushEntry(chunk.toString());
     callback();
   },
@@ -19,29 +18,20 @@ const bufferStream = new Writable({
     PinoLoggerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => {
-        return {
-          pinoHttp: [
-            {
-              level: config.get('LOG_LEVEL', 'info'),
-              redact: ['req.headers.authorization', 'req.headers.cookie'],
-              serializers: {
-                req(req: any) {
-                  return { method: req.method, url: req.url, id: req.id };
-                },
-                res(res: any) {
-                  return { statusCode: res.statusCode };
-                },
-              },
-              customProps: () => ({ context: 'HTTP' }),
+      useFactory: (config: ConfigService) => ({
+        pinoHttp: [
+          {
+            level: config.get('LOG_LEVEL', 'info'),
+            redact: ['req.headers.authorization', 'req.headers.cookie'],
+            serializers: {
+              req(req: any) { return { method: req.method, url: req.url, id: req.id }; },
+              res(res: any) { return { statusCode: res.statusCode }; },
             },
-            pino.multistream([
-              { stream: process.stdout },
-              { stream: bufferStream },
-            ]),
-          ],
-        };
-      },
+            customProps: () => ({ context: 'HTTP' }),
+          },
+          duplexStream,
+        ],
+      }),
     }),
   ],
   exports: [PinoLoggerModule],
