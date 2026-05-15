@@ -9,6 +9,7 @@ import { HandleMlOrderUseCase } from '../../../application/ml/use-cases/handle-m
 import { SyncProductToMlUseCase } from '../../../application/ml/use-cases/sync-product-to-ml.usecase';
 import { PullMlImagesUseCase } from '../../../application/ml/use-cases/pull-ml-images.usecase';
 import { LinkProductToMlUseCase } from '../../../application/ml/use-cases/link-product-to-ml.usecase';
+import { UnlinkProductFromMlUseCase } from '../../../application/ml/use-cases/unlink-product-from-ml.usecase';
 import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
@@ -29,6 +30,7 @@ export class MlController {
     private readonly syncProduct: SyncProductToMlUseCase,
     private readonly pullImages: PullMlImagesUseCase,
     private readonly linkProduct: LinkProductToMlUseCase,
+    private readonly unlinkProduct: UnlinkProductFromMlUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -91,6 +93,14 @@ export class MlController {
     @Body() dto: LinkProductDto,
   ) {
     await this.linkProduct.execute({ productId, ...dto });
+  }
+
+  @Delete('products/:productId/link')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async unlinkProductFromMl(@Param('productId') productId: string) {
+    await this.unlinkProduct.execute(productId);
   }
 
   // ─── Admin: sync product ───────────────────────────────────────────────────

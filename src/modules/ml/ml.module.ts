@@ -6,6 +6,7 @@ import { HandleMlOrderUseCase } from '../../application/ml/use-cases/handle-ml-o
 import { SyncProductToMlUseCase } from '../../application/ml/use-cases/sync-product-to-ml.usecase';
 import { PullMlImagesUseCase } from '../../application/ml/use-cases/pull-ml-images.usecase';
 import { LinkProductToMlUseCase } from '../../application/ml/use-cases/link-product-to-ml.usecase';
+import { UnlinkProductFromMlUseCase } from '../../application/ml/use-cases/unlink-product-from-ml.usecase';
 import { MlController } from '../../interfaces/http/ml/ml.controller';
 import { StockSyncProcessor, STOCK_SYNC_QUEUE } from '../../infrastructure/queue/stock-sync.processor';
 import { ProductsModule } from '../products/products.module';
@@ -27,6 +28,7 @@ import { StockModule } from '../stock/stock.module';
     SyncProductToMlUseCase,
     PullMlImagesUseCase,
     LinkProductToMlUseCase,
+    UnlinkProductFromMlUseCase,
     StockSyncProcessor,
   ],
   exports: [MlAuthService, MlClient],
