@@ -10,6 +10,7 @@ import { SyncProductToMlUseCase } from '../../../application/ml/use-cases/sync-p
 import { PullMlImagesUseCase } from '../../../application/ml/use-cases/pull-ml-images.usecase';
 import { LinkProductToMlUseCase } from '../../../application/ml/use-cases/link-product-to-ml.usecase';
 import { UnlinkProductFromMlUseCase } from '../../../application/ml/use-cases/unlink-product-from-ml.usecase';
+import { LinkVariantToMlUseCase } from '../../../application/ml/use-cases/link-variant-to-ml.usecase';
 import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
@@ -18,6 +19,7 @@ import { Role } from '../../../domain/auth/entities/user.entity';
 import { MlWebhookDto } from './dto/ml-webhook.dto';
 import { SyncProductDto } from './dto/sync-product.dto';
 import { LinkProductDto } from './dto/link-product.dto';
+import { LinkVariantDto } from './dto/link-variant.dto';
 
 @Controller('ml')
 export class MlController {
@@ -31,6 +33,7 @@ export class MlController {
     private readonly pullImages: PullMlImagesUseCase,
     private readonly linkProduct: LinkProductToMlUseCase,
     private readonly unlinkProduct: UnlinkProductFromMlUseCase,
+    private readonly linkVariant: LinkVariantToMlUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -93,6 +96,25 @@ export class MlController {
     @Body() dto: LinkProductDto,
   ) {
     await this.linkProduct.execute({ productId, ...dto });
+  }
+
+  @Get('items/:mlItemId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async getItem(@Param('mlItemId') mlItemId: string) {
+    return this.mlClient.getItemDetail(mlItemId);
+  }
+
+  @Post('products/:productId/variants/:variantId/link')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async linkVariantToMl(
+    @Param('productId') productId: string,
+    @Param('variantId') variantId: string,
+    @Body() dto: LinkVariantDto,
+  ) {
+    await this.linkVariant.execute(productId, variantId, dto.mlVariationId);
   }
 
   @Delete('products/:productId/link')
