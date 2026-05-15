@@ -8,12 +8,15 @@ import { MlAuthService } from '../../../integrations/mercadolibre/ml-auth.servic
 import { HandleMlOrderUseCase } from '../../../application/ml/use-cases/handle-ml-order.usecase';
 import { SyncProductToMlUseCase } from '../../../application/ml/use-cases/sync-product-to-ml.usecase';
 import { PullMlImagesUseCase } from '../../../application/ml/use-cases/pull-ml-images.usecase';
+import { LinkProductToMlUseCase } from '../../../application/ml/use-cases/link-product-to-ml.usecase';
+import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../../../domain/auth/entities/user.entity';
 import { MlWebhookDto } from './dto/ml-webhook.dto';
 import { SyncProductDto } from './dto/sync-product.dto';
+import { LinkProductDto } from './dto/link-product.dto';
 
 @Controller('ml')
 export class MlController {
@@ -21,9 +24,11 @@ export class MlController {
 
   constructor(
     private readonly mlAuth: MlAuthService,
+    private readonly mlClient: MlClient,
     private readonly handleMlOrder: HandleMlOrderUseCase,
     private readonly syncProduct: SyncProductToMlUseCase,
     private readonly pullImages: PullMlImagesUseCase,
+    private readonly linkProduct: LinkProductToMlUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -63,6 +68,29 @@ export class MlController {
     }
 
     return { received: true };
+  }
+
+  // ─── Admin: search seller items ───────────────────────────────────────────
+
+  @Get('items')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async searchItems(@Query('search') search: string) {
+    const items = await this.mlClient.searchSellerItems(search ?? '');
+    return { items };
+  }
+
+  // ─── Admin: link product to existing ML item ───────────────────────────────
+
+  @Post('products/:productId/link')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async linkProductToMl(
+    @Param('productId') productId: string,
+    @Body() dto: LinkProductDto,
+  ) {
+    await this.linkProduct.execute({ productId, ...dto });
   }
 
   // ─── Admin: sync product ───────────────────────────────────────────────────

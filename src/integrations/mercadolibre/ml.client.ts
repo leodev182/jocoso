@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, ServiceUnavailableException, BadRequestException } from '@nestjs/common';
 import { MlAuthService } from './ml-auth.service';
 
 export interface MlItem {
@@ -25,6 +25,23 @@ export interface MlVariation {
 export interface MlAttribute {
   id: string;
   value_name: string;
+}
+
+export interface MlVariationDetail {
+  id: number;
+  price: number;
+  available_quantity: number;
+  attribute_combinations: { id: string; name: string; value_name: string }[];
+}
+
+export interface MlItemDetail {
+  id: string;
+  title: string;
+  price: number;
+  available_quantity: number;
+  thumbnail: string;
+  pictures: { secure_url: string }[];
+  variations: MlVariationDetail[];
 }
 
 @Injectable()
@@ -70,9 +87,35 @@ export class MlClient {
     return this.get(`/orders/${mlOrderId}`);
   }
 
+  async getItemDetail(mlItemId: string): Promise<MlItemDetail> {
+    return this.get<MlItemDetail>(`/items/${mlItemId}`);
+  }
+
+  async searchSellerItems(query: string, limit = 10): Promise<MlItemDetail[]> {
+    const sellerId = await this.auth.getStoredSellerId();
+    if (!sellerId) throw new ServiceUnavailableException('ML no conectado. Autoriza la cuenta primero desde el módulo MercadoLibre.');
+    const token = await this.auth.getValidToken(sellerId);
+
+    const searchRes = await fetch(
+      `${this.baseUrl}/users/${sellerId}/items/search?q=${encodeURIComponent(query)}&status=active&limit=${limit}`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } },
+    );
+    if (!searchRes.ok) throw new BadRequestException(`ML search failed: ${await searchRes.text()}`);
+    const { results }: { results: string[] } = await searchRes.json();
+    if (!results?.length) return [];
+
+    const detailRes = await fetch(
+      `${this.baseUrl}/items?ids=${results.join(',')}`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/json' } },
+    );
+    if (!detailRes.ok) throw new BadRequestException(`ML items fetch failed: ${await detailRes.text()}`);
+    const rows: { code: number; body: MlItemDetail }[] = await detailRes.json();
+    return rows.filter(r => r.code === 200).map(r => r.body);
+  }
+
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
     const sellerId = await this.auth.getStoredSellerId();
-    if (!sellerId) throw new Error('ML not connected — authorize first via /api/v1/ml/oauth/authorize');
+    if (!sellerId) throw new ServiceUnavailableException('ML no conectado. Autoriza la cuenta primero desde el módulo MercadoLibre.');
 
     const token = await this.auth.getValidToken(sellerId);
 
@@ -89,7 +132,7 @@ export class MlClient {
     if (!res.ok) {
       const err = await res.text();
       this.logger.error(`ML API ${method} ${path} → ${res.status}: ${err}`);
-      throw new Error(`ML API error ${res.status}: ${err}`);
+      throw new BadRequestException(`Error de ML (${res.status}): ${err}`);
     }
 
     return res.json() as Promise<T>;
