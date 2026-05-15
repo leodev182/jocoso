@@ -18,8 +18,14 @@ export class GetProductUseCase {
 
   async listAll(status?: string, page = 1, limit = 20, search?: string) {
     const { products, total } = await this.productRepo.findAll(status, page, limit, search);
+    const allVariants = await Promise.all(
+      products.map(p => this.variantRepo.findByProductId(p.getId())),
+    );
     return {
-      data: products.map((p) => p.toPersistence()),
+      data: products.map((p, i) => ({
+        ...p.toPersistence(),
+        variants: allVariants[i].map(v => v.toPersistence()),
+      })),
       total,
       page,
       limit,
