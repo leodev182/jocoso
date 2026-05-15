@@ -12,6 +12,7 @@ export interface ProductVariantProps {
   price: number;
   stock: number;
   mlVariationId: string | null;
+  images: string[];
   attributes: VariantAttribute[];
   createdAt: Date;
   updatedAt: Date;
@@ -25,6 +26,7 @@ export class ProductVariant {
     private price: number,
     private readonly stock: number,
     private mlVariationId: string | null,
+    private images: string[],
     private attributes: VariantAttribute[],
     private readonly createdAt: Date,
     private updatedAt: Date,
@@ -32,11 +34,11 @@ export class ProductVariant {
 
   static create(productId: string, sku: string, price: number, attributes: VariantAttribute[] = []): ProductVariant {
     const now = new Date();
-    return new ProductVariant(crypto.randomUUID(), productId, sku, price, 0, null, attributes, now, now);
+    return new ProductVariant(crypto.randomUUID(), productId, sku, price, 0, null, [], attributes, now, now);
   }
 
   static reconstitute(props: ProductVariantProps): ProductVariant {
-    return new ProductVariant(props.id, props.productId, props.sku, props.price, props.stock, props.mlVariationId, props.attributes, props.createdAt, props.updatedAt);
+    return new ProductVariant(props.id, props.productId, props.sku, props.price, props.stock, props.mlVariationId, props.images ?? [], props.attributes, props.createdAt, props.updatedAt);
   }
 
   getId(): string { return this.id; }
@@ -45,15 +47,17 @@ export class ProductVariant {
   getPrice(): number { return this.price; }
   getStock(): number { return this.stock; }
   getMlVariationId(): string | null { return this.mlVariationId; }
+  getImages(): string[] { return this.images; }
   getAttributes(): VariantAttribute[] { return this.attributes; }
 
   updatePrice(price: number): void { this.price = price; this.touch(); }
   assignMlVariationId(id: string): void { this.mlVariationId = id; this.touch(); }
+  setImages(images: string[]): void { this.images = images; this.touch(); }
   setAttributes(attributes: VariantAttribute[]): void { this.attributes = attributes; this.touch(); }
 
   private touch(): void { this.updatedAt = new Date(); }
 
   toPersistence(): ProductVariantProps {
-    return { id: this.id, productId: this.productId, sku: this.sku, price: this.price, stock: this.stock, mlVariationId: this.mlVariationId, attributes: this.attributes, createdAt: this.createdAt, updatedAt: this.updatedAt };
+    return { id: this.id, productId: this.productId, sku: this.sku, price: this.price, stock: this.stock, mlVariationId: this.mlVariationId, images: this.images, attributes: this.attributes, createdAt: this.createdAt, updatedAt: this.updatedAt };
   }
 }

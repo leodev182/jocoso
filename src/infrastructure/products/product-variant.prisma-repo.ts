@@ -33,6 +33,7 @@ export class ProductVariantPrismaRepository implements IProductVariantRepository
       data: {
         id: d.id, productId: d.productId, sku: d.sku,
         price: d.price, stock: d.stock, mlVariationId: d.mlVariationId,
+        images: d.images,
         attributes: { create: d.attributes },
       },
     });
@@ -46,6 +47,7 @@ export class ProductVariantPrismaRepository implements IProductVariantRepository
         where: { id: d.id },
         data: {
           price: d.price, mlVariationId: d.mlVariationId,
+          images: d.images,
           attributes: { create: d.attributes },
         },
       }),
@@ -61,6 +63,7 @@ export class ProductVariantPrismaRepository implements IProductVariantRepository
       id: row.id, productId: row.productId, sku: row.sku,
       price: Number(row.price), stock: row.stock,
       mlVariationId: row.mlVariationId,
+      images: row.images ?? [],
       attributes: row.attributes?.map((a: any) => ({ name: a.name, value: a.value })) ?? [],
       createdAt: row.createdAt, updatedAt: row.updatedAt,
     } as ProductVariantProps);

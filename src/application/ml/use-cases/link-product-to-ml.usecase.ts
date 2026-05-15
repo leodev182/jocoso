@@ -38,10 +38,22 @@ export class LinkProductToMlUseCase {
     if (images.length) product.setImages(images);
     await this.productRepo.update(product);
 
+    // Build map pictureId → secure_url para resolver imágenes por variante
+    const pictureMap = new Map<string, string>(
+      (mlItem.pictures ?? [])
+        .filter(p => p.id && p.secure_url)
+        .map(p => [p.id, p.secure_url]),
+    );
+
     for (const mapping of cmd.variantMappings) {
+      const variation = mlItem.variations?.find(v => String(v.id) === String(mapping.mlVariationId));
+      const variantImages = variation?.picture_ids?.length
+        ? variation.picture_ids.map(id => pictureMap.get(id)).filter(Boolean) as string[]
+        : [];
+
       await this.prisma.productVariant.update({
         where: { id: mapping.localVariantId },
-        data: { mlVariationId: mapping.mlVariationId ?? null },
+        data: { mlVariationId: mapping.mlVariationId ?? null, images: variantImages },
       });
 
       const quantity = mapping.mlVariationId

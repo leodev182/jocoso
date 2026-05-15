@@ -31,6 +31,7 @@ export interface MlVariationDetail {
   id: number;
   price: number;
   available_quantity: number;
+  picture_ids: string[];
   attribute_combinations: { id: string; name: string; value_name: string }[];
 }
 
@@ -40,7 +41,7 @@ export interface MlItemDetail {
   price: number;
   available_quantity: number;
   thumbnail: string;
-  pictures: { secure_url: string }[];
+  pictures: { id: string; secure_url: string }[];
   variations: MlVariationDetail[];
 }
 
