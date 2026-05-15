@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Post, Query, Body, Param,
+  Controller, Get, Post, Delete, Query, Body, Param,
   HttpCode, HttpStatus, UseGuards, Logger, Redirect,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
