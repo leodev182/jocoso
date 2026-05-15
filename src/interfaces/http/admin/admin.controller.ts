@@ -2,6 +2,7 @@ import {
   Controller, Get, Patch, Body, Param, Query,
   UseGuards, HttpCode, HttpStatus, ParseUUIDPipe, ValidationPipe,
 } from '@nestjs/common';
+import { getEntries } from '../../../infrastructure/logging/log-store';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -45,6 +46,17 @@ export class AdminController {
     @Body() dto: ChangeRoleDto,
   ) {
     return this.changeRole.execute(id, dto.role);
+  }
+
+  @Get('logs')
+  getLogs(
+    @Query('level') level?: string,
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const minLevel = level ? parseInt(level, 10) : undefined;
+    const take = limit ? parseInt(limit, 10) : 200;
+    return { data: getEntries(minLevel, search, take) };
   }
 
   @Get('audit-logs')
