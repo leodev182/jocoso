@@ -40,7 +40,7 @@ export class StockPrismaRepository implements IStockRepository {
 
         await tx.$executeRaw`
           UPDATE product_variants
-          SET stock = stock - ${amount}, updated_at = NOW()
+          SET stock = stock - ${amount}, "updatedAt" = NOW()
           WHERE id = ${variantId}
         `;
 
@@ -73,7 +73,7 @@ export class StockPrismaRepository implements IStockRepository {
 
       await tx.$executeRaw`
         UPDATE product_variants
-        SET stock = stock + ${amount}, updated_at = NOW()
+        SET stock = stock + ${amount}, "updatedAt" = NOW()
         WHERE id = ${variantId}
       `;
 
