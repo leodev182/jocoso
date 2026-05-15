@@ -48,14 +48,19 @@ export class LinkProductToMlUseCase {
         ? (mlItem.variations?.find(v => String(v.id) === String(mapping.mlVariationId))?.available_quantity ?? 0)
         : (mlItem.available_quantity ?? 0);
 
+      this.logger.log(`Variant ${mapping.localVariantId}: ML quantity=${quantity}`);
       if (quantity > 0) {
-        await this.increaseStock.execute({
-          variantId: mapping.localVariantId,
-          quantity,
-          source: StockSource.ML,
-          referenceType: ReferenceType.MANUAL,
-          referenceId: cmd.mlItemId,
-        });
+        try {
+          await this.increaseStock.execute({
+            variantId: mapping.localVariantId,
+            quantity,
+            source: StockSource.ML,
+            referenceType: ReferenceType.MANUAL,
+            referenceId: cmd.mlItemId,
+          });
+        } catch (err) {
+          this.logger.warn(`Could not pull stock for variant ${mapping.localVariantId}: ${err.message}`);
+        }
       }
     }
 
