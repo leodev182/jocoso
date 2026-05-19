@@ -16,18 +16,26 @@ enum Role {
 }
 
 model User {
-  id               String         @id @default(uuid())
-  email            String         @unique
-  passwordHash     String
-  role             Role           @default(CUSTOMER)
+  id               String   @id @default(uuid())
+  email            String   @unique
+  passwordHash     String?  // null para usuarios Google
+  googleId         String?  @unique
+  name             String?
+  phone            String?
+  role             Role     @default(CUSTOMER)
   twoFactorSecret  String?
-  twoFactorEnabled Boolean        @default(false)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  twoFactorEnabled Boolean  @default(false)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  refreshTokens    RefreshToken[]
-  auditLogs        AuditLog[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  addresses     Address[]
+  orders        Order[]
 
+  @@index([email])
+  @@index([googleId])
   @@map("users")
 }
 
@@ -65,6 +73,36 @@ model AuditLog {
   @@map("audit_logs")
 }
 
+// ─── ADDRESS DOMAIN ──────────────────────────────────────────────────────────
+
+model Address {
+  id       String @id @default(uuid())
+  userId   String
+  alias    String // "Casa", "Trabajo", etc.
+
+  fullName  String
+  rut       String  // requerido por Starken Chile
+  phone     String
+  region    String
+  ciudad    String
+  comuna    String  // requerido por Starken
+  calle     String
+  numero    String  // puede ser "S/N"
+  depto     String?
+  referencia String?
+
+  isDefault Boolean  @default(false)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+
+  @@index([userId])
+  @@map("addresses")
+}
+
 // ─── PRODUCTS DOMAIN ─────────────────────────────────────────────────────────
 
 enum ProductStatus {
@@ -74,30 +112,38 @@ enum ProductStatus {
 }
 
 model Product {
-  id          String         @id @default(uuid())
+  id          String        @id @default(uuid())
   title       String
+  slug        String?       @unique
   description String?
-  status      ProductStatus  @default(ACTIVE)
+  brand       String?
+  status      ProductStatus @default(ACTIVE)
+  featured    Boolean       @default(false)
   mlItemId    String?
   images      String[]
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
-  variants    ProductVariant[]
+  variants ProductVariant[]
+  tags     ProductTag[]
 
+  @@index([slug])
+  @@index([status])
+  @@index([featured])
+  @@index([brand])
   @@map("products")
 }
 
 model ProductVariant {
-  id            String             @id @default(uuid())
+  id            String   @id @default(uuid())
   productId     String
-  sku           String             @unique
-  price         Decimal            @db.Decimal(10, 2)
-  stock         Int                @default(0)
+  sku           String   @unique
+  price         Decimal  @db.Decimal(10, 2)
+  stock         Int      @default(0)
   mlVariationId String?
   images        String[]
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   product        Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
   attributes     VariantAttribute[]
@@ -109,7 +155,7 @@ model ProductVariant {
 }
 
 model VariantAttribute {
-  id        String         @id @default(uuid())
+  id        String @id @default(uuid())
   variantId String
   name      String
   value     String
@@ -118,6 +164,39 @@ model VariantAttribute {
 
   @@unique([variantId, name])
   @@map("variant_attributes")
+}
+
+// ─── TAGS ────────────────────────────────────────────────────────────────────
+
+model Tag {
+  id    String  @id @default(uuid())
+  name  String  @unique
+  slug  String  @unique
+  color String?
+
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products ProductTag[]
+
+  @@index([slug])
+  @@map("tags")
+}
+
+model ProductTag {
+  productId String
+  tagId     String
+
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag     Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([productId, tagId])
+  @@index([productId])
+  @@index([tagId])
+  @@map("product_tags")
 }
 
 // ─── STOCK DOMAIN ────────────────────────────────────────────────────────────
@@ -166,15 +245,32 @@ enum OrderStatus {
 model Order {
   id          String      @id @default(uuid())
   userId      String
+  addressId   String?
   status      OrderStatus @default(PENDING)
   totalAmount Decimal     @db.Decimal(10, 2)
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
 
+  trackingCode  String?
+  shippingLabel String?  // ZPL generado para Starken
+
+  customerNotes String?
+  adminNotes    String?
+
+  paidAt      DateTime?
+  shippedAt   DateTime?
+  deliveredAt DateTime?
+  cancelledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User      @relation(fields: [userId], references: [id])
+  address Address?  @relation(fields: [addressId], references: [id])
   items   OrderItem[]
   payment Payment?
 
   @@index([userId])
+  @@index([status])
+  @@index([createdAt])
   @@map("orders")
 }
 
@@ -218,13 +314,13 @@ model Payment {
 }
 
 model PaymentEventLog {
-  id        String   @id @default(uuid())
-  paymentId String
-  fromStatus PaymentStatus
-  toStatus   PaymentStatus
+  id          String        @id @default(uuid())
+  paymentId   String
+  fromStatus  PaymentStatus
+  toStatus    PaymentStatus
   triggeredBy String
-  payload   Json?
-  createdAt DateTime @default(now())
+  payload     Json?
+  createdAt   DateTime      @default(now())
 
   payment Payment @relation(fields: [paymentId], references: [id])
 
@@ -237,7 +333,7 @@ model PaymentEventLog {
 model ProductView {
   id        String   @id @default(uuid())
   productId String
-  userId    String?  // null = anonymous
+  userId    String?
   viewedAt  DateTime @default(now())
 
   @@index([productId])
@@ -249,7 +345,7 @@ model ProductView {
 
 model MlToken {
   id           String   @id @default(uuid())
-  sellerId     String   @unique  // ML user_id of the authenticated seller
+  sellerId     String   @unique
   accessToken  String
   refreshToken String
   expiresAt    DateTime
