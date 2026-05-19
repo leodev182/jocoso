@@ -8,6 +8,8 @@ import { DeleteProductUseCase } from '../../../application/products/use-cases/de
 import { DeleteVariantUseCase } from '../../../application/products/use-cases/delete-variant.usecase';
 import { UpdateVariantUseCase } from '../../../application/products/use-cases/update-variant.usecase';
 import { UpdateProductUseCase } from '../../../application/products/use-cases/update-product.usecase';
+import { AddTagToProductUseCase } from '../../../application/products/use-cases/add-tag-to-product.usecase';
+import { RemoveTagFromProductUseCase } from '../../../application/products/use-cases/remove-tag-from-product.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -30,6 +32,8 @@ export class ProductsController {
     private readonly deleteVariant: DeleteVariantUseCase,
     private readonly updateVariant: UpdateVariantUseCase,
     private readonly updateProduct: UpdateProductUseCase,
+    private readonly addTag: AddTagToProductUseCase,
+    private readonly removeTag: RemoveTagFromProductUseCase,
   ) {}
 
   @Get()
@@ -103,5 +107,27 @@ export class ProductsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   removeVariant(@Param('variantId', ParseUUIDPipe) variantId: string) {
     return this.deleteVariant.execute(variantId);
+  }
+
+  @Post(':id/tags/:tagId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  addTagToProduct(
+    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('tagId', ParseUUIDPipe) tagId: string,
+  ) {
+    return this.addTag.execute(productId, tagId);
+  }
+
+  @Delete(':id/tags/:tagId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  removeTagFromProduct(
+    @Param('id', ParseUUIDPipe) productId: string,
+    @Param('tagId', ParseUUIDPipe) tagId: string,
+  ) {
+    return this.removeTag.execute(productId, tagId);
   }
 }
