@@ -7,12 +7,14 @@ import { GetTrendingProductsUseCase } from '../../../application/products/use-ca
 import { DeleteProductUseCase } from '../../../application/products/use-cases/delete-product.usecase';
 import { DeleteVariantUseCase } from '../../../application/products/use-cases/delete-variant.usecase';
 import { UpdateVariantUseCase } from '../../../application/products/use-cases/update-variant.usecase';
+import { UpdateProductUseCase } from '../../../application/products/use-cases/update-product.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CreateVariantDto } from './dto/create-variant.dto';
 import { UpdateVariantDto } from './dto/update-variant.dto';
+import { UpdateProductDto } from './dto/update-product.dto';
 import { ListProductsQueryDto } from './dto/list-products-query.dto';
 import { Role } from '../../../domain/auth/entities/user.entity';
 
@@ -27,6 +29,7 @@ export class ProductsController {
     private readonly deleteProduct: DeleteProductUseCase,
     private readonly deleteVariant: DeleteVariantUseCase,
     private readonly updateVariant: UpdateVariantUseCase,
+    private readonly updateProduct: UpdateProductUseCase,
   ) {}
 
   @Get()
@@ -58,6 +61,14 @@ export class ProductsController {
   @Roles(Role.ADMIN)
   create(@Body() dto: CreateProductDto) {
     return this.createProduct.execute(dto);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  update(@Param('id', ParseUUIDPipe) id: string, @Body() dto: UpdateProductDto) {
+    return this.updateProduct.execute({ id, ...dto });
   }
 
   @Delete(':id')
