@@ -9,8 +9,10 @@ import { TOKEN_SERVICE } from '../ports/token.service';
 function fakeUser() {
   return User.reconstitute({
     id: 'u-1', email: 'u@t.com', passwordHash: 'h',
+    googleId: null, name: null, phone: null,
     role: Role.CUSTOMER, twoFactorSecret: null,
-    twoFactorEnabled: false, createdAt: new Date(),
+    twoFactorEnabled: false, isActive: true,
+    createdAt: new Date(), updatedAt: new Date(),
   });
 }
 

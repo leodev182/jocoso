@@ -58,8 +58,9 @@ describe('User entity', () => {
       const now = new Date();
       const u = User.reconstitute({
         id: 'u-1', email: 'a@b.com', passwordHash: 'h',
+        googleId: null, name: null, phone: null,
         role: Role.ADMIN, twoFactorSecret: 'S', twoFactorEnabled: true,
-        createdAt: now,
+        isActive: true, createdAt: now, updatedAt: now,
       });
       expect(u.getId()).toBe('u-1');
       expect(u.getRole()).toBe(Role.ADMIN);

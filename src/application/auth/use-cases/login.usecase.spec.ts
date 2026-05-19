@@ -11,9 +11,10 @@ import { BcryptService } from '../../../infrastructure/security/bcrypt.service';
 function fakeUser(overrides: Partial<{ twoFactorEnabled: boolean }> = {}) {
   return User.reconstitute({
     id: 'u-1', email: 'user@test.com', passwordHash: 'hashed',
+    googleId: null, name: null, phone: null,
     role: Role.CUSTOMER, twoFactorSecret: null,
     twoFactorEnabled: overrides.twoFactorEnabled ?? false,
-    createdAt: new Date(),
+    isActive: true, createdAt: new Date(), updatedAt: new Date(),
   });
 }
 

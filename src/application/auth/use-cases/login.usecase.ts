@@ -26,7 +26,9 @@ export class LoginUseCase {
       throw new UnauthorizedException('Account not available');
     }
 
-    const valid = await this.bcrypt.compare(password, user.getPasswordHash());
+    const hash = user.getPasswordHash();
+    if (!hash) throw new UnauthorizedException('Esta cuenta usa Google para iniciar sesión');
+    const valid = await this.bcrypt.compare(password, hash);
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     return this.issueTokens(user);
