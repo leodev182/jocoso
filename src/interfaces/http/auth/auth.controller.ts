@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, UseGuards, HttpCode, HttpStatus } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { Audit } from '../../../infrastructure/audit/audit.decorator';
 import { RegisterUseCase } from '../../../application/auth/use-cases/register.usecase';
@@ -7,12 +7,15 @@ import { RefreshUseCase } from '../../../application/auth/use-cases/refresh.usec
 import { LogoutUseCase } from '../../../application/auth/use-cases/logout.usecase';
 import { Setup2faUseCase } from '../../../application/auth/use-cases/setup-2fa.usecase';
 import { Verify2faUseCase } from '../../../application/auth/use-cases/verify-2fa.usecase';
+import { GetMeUseCase } from '../../../application/auth/use-cases/get-me.usecase';
+import { UpdateProfileUseCase } from '../../../application/auth/use-cases/update-profile.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 // Login y register usan el throttle estricto: 10 req/min por IP
 // Previene brute force sin afectar uso normal
@@ -26,6 +29,8 @@ export class AuthController {
     private readonly logout: LogoutUseCase,
     private readonly setup2fa: Setup2faUseCase,
     private readonly verify2fa: Verify2faUseCase,
+    private readonly getMe: GetMeUseCase,
+    private readonly updateProfile: UpdateProfileUseCase,
   ) {}
 
   @Post('register')
@@ -51,6 +56,19 @@ export class AuthController {
   @HttpCode(HttpStatus.NO_CONTENT)
   handleLogout(@Body() dto: RefreshDto) {
     return this.logout.execute(dto.refreshToken);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  handleMe(@CurrentUser() user: { id: string }) {
+    return this.getMe.execute(user.id);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  handleUpdateProfile(@CurrentUser() user: { id: string }, @Body() dto: UpdateProfileDto) {
+    return this.updateProfile.execute({ userId: user.id, ...dto });
   }
 
   @Post('2fa/setup')

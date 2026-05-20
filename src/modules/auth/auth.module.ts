@@ -15,6 +15,8 @@ import { RefreshUseCase } from '../../application/auth/use-cases/refresh.usecase
 import { LogoutUseCase } from '../../application/auth/use-cases/logout.usecase';
 import { Setup2faUseCase } from '../../application/auth/use-cases/setup-2fa.usecase';
 import { Verify2faUseCase } from '../../application/auth/use-cases/verify-2fa.usecase';
+import { GetMeUseCase } from '../../application/auth/use-cases/get-me.usecase';
+import { UpdateProfileUseCase } from '../../application/auth/use-cases/update-profile.usecase';
 import { TOKEN_SERVICE } from '../../application/auth/ports/token.service';
 
 // Infrastructure
@@ -51,6 +53,8 @@ import { AuthController } from '../../interfaces/http/auth/auth.controller';
     LogoutUseCase,
     Setup2faUseCase,
     Verify2faUseCase,
+    GetMeUseCase,
+    UpdateProfileUseCase,
 
     // Infrastructure — bind interfaces to implementations
     { provide: USER_REPOSITORY, useClass: UserPrismaRepository },
