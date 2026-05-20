@@ -15,7 +15,13 @@ export class CreateTagUseCase {
   async execute(cmd: CreateTagCommand): Promise<Tag> {
     const slug = toSlug(cmd.name);
     const existing = await this.repo.findBySlug(slug);
-    if (existing) throw new ConflictException(`Tag "${cmd.name}" ya existe`);
+
+    if (existing) {
+      if (existing.getIsActive()) throw new ConflictException(`Tag "${cmd.name}" ya existe`);
+      existing.reactivate(cmd.name, cmd.color ?? null);
+      await this.repo.update(existing);
+      return existing;
+    }
 
     const tag = Tag.create(cmd.name, slug, cmd.color);
     await this.repo.save(tag);

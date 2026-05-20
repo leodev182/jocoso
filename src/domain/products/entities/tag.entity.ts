@@ -38,6 +38,13 @@ export class Tag {
 
   deactivate(): void { this.isActive = false; this.touch(); }
 
+  reactivate(name: string, color: string | null): void {
+    this.name = name;
+    this.color = color;
+    this.isActive = true;
+    this.touch();
+  }
+
   private touch(): void { this.updatedAt = new Date(); }
 
   toPersistence(): TagProps {

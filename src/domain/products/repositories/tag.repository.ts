@@ -5,6 +5,7 @@ export interface ITagRepository {
   findBySlug(slug: string): Promise<Tag | null>;
   findAll(): Promise<Tag[]>;
   save(tag: Tag): Promise<void>;
+  update(tag: Tag): Promise<void>;
   delete(id: string): Promise<void>;
   addToProduct(productId: string, tagId: string): Promise<void>;
   removeFromProduct(productId: string, tagId: string): Promise<void>;

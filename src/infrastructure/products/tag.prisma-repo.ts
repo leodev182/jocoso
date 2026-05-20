@@ -32,6 +32,14 @@ export class TagPrismaRepository implements ITagRepository {
     });
   }
 
+  async update(tag: Tag): Promise<void> {
+    const d = tag.toPersistence();
+    await this.prisma.tag.update({
+      where: { id: d.id },
+      data: { name: d.name, color: d.color, isActive: d.isActive, updatedAt: d.updatedAt },
+    });
+  }
+
   async delete(id: string): Promise<void> {
     await this.prisma.tag.update({ where: { id }, data: { isActive: false } });
   }
