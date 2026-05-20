@@ -14,6 +14,7 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { MlModule } from './modules/ml/ml.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AddressesModule } from './modules/addresses/addresses.module';
 import { HealthController } from './interfaces/http/health/health.controller';
 
 @Module({
@@ -54,6 +55,7 @@ import { HealthController } from './interfaces/http/health/health.controller';
     PaymentsModule,
     MlModule,
     AdminModule,
+    AddressesModule,
   ],
   controllers: [HealthController],
   providers: [
