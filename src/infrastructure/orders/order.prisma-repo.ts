@@ -43,13 +43,22 @@ export class OrderPrismaRepository implements IOrderRepository {
 
   async update(order: Order): Promise<void> {
     const d = order.toPersistence();
-    await this.prisma.order.update({ where: { id: d.id }, data: { status: d.status as any } });
+    await this.prisma.order.update({
+      where: { id: d.id },
+      data: {
+        status: d.status as any,
+        trackingCode: d.trackingCode,
+        shippingLabel: d.shippingLabel,
+      },
+    });
   }
 
   private toEntity(row: any): Order {
     return Order.reconstitute({
-      id: row.id, userId: row.userId, status: row.status as OrderStatus,
-      totalAmount: Number(row.totalAmount),
+      id: row.id, userId: row.userId, addressId: row.addressId ?? null,
+      status: row.status as OrderStatus, totalAmount: Number(row.totalAmount),
+      trackingCode: row.trackingCode ?? null, shippingLabel: row.shippingLabel ?? null,
+      customerNotes: row.customerNotes ?? null, adminNotes: row.adminNotes ?? null,
       items: row.items.map((i: any) => ({ id: i.id, orderId: i.orderId, variantId: i.variantId, quantity: i.quantity, price: Number(i.price) })),
       createdAt: row.createdAt, updatedAt: row.updatedAt,
     } as OrderProps);

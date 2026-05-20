@@ -3,6 +3,7 @@ import { Audit } from '../../../infrastructure/audit/audit.decorator';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { CreateOrderUseCase } from '../../../application/orders/use-cases/create-order.usecase';
 import { GetOrderUseCase } from '../../../application/orders/use-cases/get-order.usecase';
+import { GenerateShippingLabelUseCase } from '../../../application/orders/use-cases/generate-shipping-label.usecase';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -16,6 +17,7 @@ export class OrdersController {
   constructor(
     private readonly createOrder: CreateOrderUseCase,
     private readonly getOrder: GetOrderUseCase,
+    private readonly generateLabel: GenerateShippingLabelUseCase,
   ) {}
 
   // Admin: lista todas las órdenes
@@ -46,5 +48,12 @@ export class OrdersController {
   @Get(':id')
   getById(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: { id: string; role: string }) {
     return this.getOrder.getById(id, user.id, user.role);
+  }
+
+  @Post(':id/shipping-label')
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPPORT)
+  generateShippingLabel(@Param('id', ParseUUIDPipe) id: string) {
+    return this.generateLabel.execute(id);
   }
 }

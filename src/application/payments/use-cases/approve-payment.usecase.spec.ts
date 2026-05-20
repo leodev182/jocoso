@@ -14,8 +14,10 @@ function pendingPayment(orderId = 'ord-1') {
 
 function pendingOrder(id = 'ord-1', items: any[] = []) {
   return Order.reconstitute({
-    id, userId: 'u-1', status: OrderStatus.PENDING,
-    totalAmount: 200, items, createdAt: new Date(), updatedAt: new Date(),
+    id, userId: 'u-1', addressId: null, status: OrderStatus.PENDING,
+    totalAmount: 200, trackingCode: null, shippingLabel: null,
+    customerNotes: null, adminNotes: null,
+    items, createdAt: new Date(), updatedAt: new Date(),
   });
 }
 

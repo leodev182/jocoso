@@ -20,8 +20,13 @@ export interface OrderItemProps {
 export interface OrderProps {
   id: string;
   userId: string;
+  addressId: string | null;
   status: OrderStatus;
   totalAmount: number;
+  trackingCode: string | null;
+  shippingLabel: string | null;
+  customerNotes: string | null;
+  adminNotes: string | null;
   items: OrderItemProps[];
   createdAt: Date;
   updatedAt: Date;
@@ -31,8 +36,13 @@ export class Order {
   private constructor(
     private readonly id: string,
     private readonly userId: string,
+    private addressId: string | null,
     private status: OrderStatus,
     private readonly totalAmount: number,
+    private trackingCode: string | null,
+    private shippingLabel: string | null,
+    private customerNotes: string | null,
+    private adminNotes: string | null,
     private readonly items: OrderItemProps[],
     private readonly createdAt: Date,
     private updatedAt: Date,
@@ -42,23 +52,32 @@ export class Order {
     const id = crypto.randomUUID();
     const now = new Date();
     const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const orderItems: OrderItemProps[] = items.map((i) => ({
-      id: crypto.randomUUID(),
-      orderId: id,
-      ...i,
-    }));
-    return new Order(id, userId, OrderStatus.PENDING, totalAmount, orderItems, now, now);
+    const orderItems: OrderItemProps[] = items.map((i) => ({ id: crypto.randomUUID(), orderId: id, ...i }));
+    return new Order(id, userId, null, OrderStatus.PENDING, totalAmount, null, null, null, null, orderItems, now, now);
   }
 
   static reconstitute(props: OrderProps): Order {
-    return new Order(props.id, props.userId, props.status, props.totalAmount, props.items, props.createdAt, props.updatedAt);
+    return new Order(
+      props.id, props.userId, props.addressId, props.status, props.totalAmount,
+      props.trackingCode, props.shippingLabel, props.customerNotes, props.adminNotes,
+      props.items, props.createdAt, props.updatedAt,
+    );
   }
 
   getId(): string { return this.id; }
   getUserId(): string { return this.userId; }
+  getAddressId(): string | null { return this.addressId; }
   getStatus(): OrderStatus { return this.status; }
   getTotalAmount(): number { return this.totalAmount; }
+  getTrackingCode(): string | null { return this.trackingCode; }
+  getShippingLabel(): string | null { return this.shippingLabel; }
   getItems(): OrderItemProps[] { return this.items; }
+
+  setShippingLabel(trackingCode: string, zpl: string): void {
+    this.trackingCode = trackingCode;
+    this.shippingLabel = zpl;
+    this.touch();
+  }
 
   confirm(): void { this.transition(OrderStatus.CONFIRMED); }
   process(): void { this.transition(OrderStatus.PROCESSING); }
@@ -72,14 +91,16 @@ export class Order {
     this.touch();
   }
 
-  private transition(next: OrderStatus): void {
-    this.status = next;
-    this.touch();
-  }
-
+  private transition(next: OrderStatus): void { this.status = next; this.touch(); }
   private touch(): void { this.updatedAt = new Date(); }
 
   toPersistence(): OrderProps {
-    return { id: this.id, userId: this.userId, status: this.status, totalAmount: this.totalAmount, items: this.items, createdAt: this.createdAt, updatedAt: this.updatedAt };
+    return {
+      id: this.id, userId: this.userId, addressId: this.addressId,
+      status: this.status, totalAmount: this.totalAmount,
+      trackingCode: this.trackingCode, shippingLabel: this.shippingLabel,
+      customerNotes: this.customerNotes, adminNotes: this.adminNotes,
+      items: this.items, createdAt: this.createdAt, updatedAt: this.updatedAt,
+    };
   }
 }
