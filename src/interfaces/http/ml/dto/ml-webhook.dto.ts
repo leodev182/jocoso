@@ -11,6 +11,6 @@ export class MlWebhookDto {
   user_id: number;
 
   @IsOptional()
-  @IsString()
-  attempts?: string;
+  @IsNumber()
+  attempts?: number;
 }
