@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bullmq';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -45,6 +46,7 @@ import { HealthController } from './interfaces/http/health/health.controller';
         limit: 10,     // 10 req/min — para auth (login, register)
       },
     ]),
+    ScheduleModule.forRoot(),
     LoggerModule,
     PrismaModule,
     AuditModule,

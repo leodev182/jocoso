@@ -11,6 +11,7 @@ import { LinkVariantToMlUseCase } from '../../application/ml/use-cases/link-vari
 import { ReconcileMlOrdersUseCase } from '../../application/ml/use-cases/reconcile-ml-orders.usecase';
 import { MlController } from '../../interfaces/http/ml/ml.controller';
 import { StockSyncProcessor, STOCK_SYNC_QUEUE } from '../../infrastructure/queue/stock-sync.processor';
+import { MlReconcileScheduler } from '../../infrastructure/queue/ml-reconcile.scheduler';
 import { ProductsModule } from '../products/products.module';
 import { OrdersModule } from '../orders/orders.module';
 import { StockModule } from '../stock/stock.module';
@@ -33,6 +34,7 @@ import { StockModule } from '../stock/stock.module';
     UnlinkProductFromMlUseCase,
     LinkVariantToMlUseCase,
     ReconcileMlOrdersUseCase,
+    MlReconcileScheduler,
     StockSyncProcessor,
   ],
   exports: [MlAuthService, MlClient],
