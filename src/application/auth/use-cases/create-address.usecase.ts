@@ -7,6 +7,7 @@ export interface CreateAddressCommand {
   alias: string;
   fullName: string;
   rut: string;
+  email: string;
   phone: string;
   region: string;
   ciudad: string;

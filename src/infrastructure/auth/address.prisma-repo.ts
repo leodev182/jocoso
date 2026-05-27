@@ -25,7 +25,7 @@ export class AddressPrismaRepository implements IAddressRepository {
     await this.prisma.address.create({
       data: {
         id: d.id, userId: d.userId, alias: d.alias,
-        fullName: d.fullName, rut: d.rut, phone: d.phone,
+        fullName: d.fullName, rut: d.rut, email: d.email, phone: d.phone,
         region: d.region, ciudad: d.ciudad, comuna: d.comuna,
         calle: d.calle, numero: d.numero, depto: d.depto,
         referencia: d.referencia, isDefault: d.isDefault, isActive: d.isActive,
@@ -38,7 +38,7 @@ export class AddressPrismaRepository implements IAddressRepository {
     await this.prisma.address.update({
       where: { id: d.id },
       data: {
-        alias: d.alias, fullName: d.fullName, rut: d.rut, phone: d.phone,
+        alias: d.alias, fullName: d.fullName, rut: d.rut, email: d.email, phone: d.phone,
         region: d.region, ciudad: d.ciudad, comuna: d.comuna,
         calle: d.calle, numero: d.numero, depto: d.depto,
         referencia: d.referencia, isDefault: d.isDefault, isActive: d.isActive,
@@ -56,7 +56,7 @@ export class AddressPrismaRepository implements IAddressRepository {
   private toEntity(row: any): Address {
     return Address.reconstitute({
       id: row.id, userId: row.userId, alias: row.alias,
-      fullName: row.fullName, rut: row.rut, phone: row.phone,
+      fullName: row.fullName, rut: row.rut, email: row.email ?? null, phone: row.phone,
       region: row.region, ciudad: row.ciudad, comuna: row.comuna,
       calle: row.calle, numero: row.numero,
       depto: row.depto ?? null, referencia: row.referencia ?? null,

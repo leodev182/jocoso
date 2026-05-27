@@ -82,6 +82,7 @@ model Address {
 
   fullName  String
   rut       String  // requerido por Starken Chile
+  email     String?
   phone     String
   region    String
   ciudad    String

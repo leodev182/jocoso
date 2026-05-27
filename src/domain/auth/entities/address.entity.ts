@@ -6,6 +6,7 @@ export interface AddressProps {
   alias: string;
   fullName: string;
   rut: string;
+  email: string | null;
   phone: string;
   region: string;
   ciudad: string;
@@ -27,6 +28,7 @@ export class Address {
     private alias: string,
     private fullName: string,
     private rut: string,
+    private email: string | null,
     private phone: string,
     private region: string,
     private ciudad: string,
@@ -45,7 +47,7 @@ export class Address {
     const now = new Date();
     return new Address(
       crypto.randomUUID(), props.userId, props.alias, props.fullName,
-      props.rut, props.phone, props.region, props.ciudad, props.comuna,
+      props.rut, props.email ?? null, props.phone, props.region, props.ciudad, props.comuna,
       props.calle, props.numero, props.depto ?? null, props.referencia ?? null,
       props.isDefault, true, now, now,
     );
@@ -54,7 +56,7 @@ export class Address {
   static reconstitute(props: AddressProps): Address {
     return new Address(
       props.id, props.userId, props.alias, props.fullName,
-      props.rut, props.phone, props.region, props.ciudad, props.comuna,
+      props.rut, props.email ?? null, props.phone, props.region, props.ciudad, props.comuna,
       props.calle, props.numero, props.depto, props.referencia,
       props.isDefault, props.isActive, props.createdAt, props.updatedAt,
     );
@@ -65,6 +67,7 @@ export class Address {
   getAlias(): string { return this.alias; }
   getFullName(): string { return this.fullName; }
   getRut(): string { return this.rut; }
+  getEmail(): string | null { return this.email; }
   getPhone(): string { return this.phone; }
   getRegion(): string { return this.region; }
   getCiudad(): string { return this.ciudad; }
@@ -85,7 +88,7 @@ export class Address {
   toPersistence(): AddressProps {
     return {
       id: this.id, userId: this.userId, alias: this.alias,
-      fullName: this.fullName, rut: this.rut, phone: this.phone,
+      fullName: this.fullName, rut: this.rut, email: this.email, phone: this.phone,
       region: this.region, ciudad: this.ciudad, comuna: this.comuna,
       calle: this.calle, numero: this.numero, depto: this.depto,
       referencia: this.referencia, isDefault: this.isDefault,

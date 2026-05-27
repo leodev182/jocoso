@@ -11,6 +11,7 @@ export class ZplLabelService {
     const commune   = this.zpl(`${address.comuna}, ${address.ciudad}`, 40);
     const region    = this.zpl(address.region, 40);
     const phone     = this.zpl(`Tel: ${address.phone}`, 40);
+    const email     = address.email ? this.zpl(address.email, 40) : null;
     const orderLine = this.zpl(`Orden: #${shortOrder}  |  ${itemCount} item(s)  |  $${total.toLocaleString('es-CL')}`, 60);
 
     return [
@@ -38,14 +39,15 @@ export class ZplLabelService {
       `^FO30,278^A0N,22,22^FD${commune}^FS`,
       `^FO30,302^A0N,22,22^FD${region}^FS`,
       `^FO30,326^A0N,22,22^FD${phone}^FS`,
+      ...(email ? [`^FO30,350^A0N,20,20^FD${email}^FS`] : []),
 
       // ── Datos orden ─────────────────────────────────────────────────────────
-      '^FO30,360^GB1158,2,1^FS',
-      `^FO30,370^A0N,20,20^FD${orderLine}^FS`,
+      '^FO30,376^GB1158,2,1^FS',
+      `^FO30,386^A0N,20,20^FD${orderLine}^FS`,
 
       // ── Código de barras Code128 ─────────────────────────────────────────
-      '^FO30,400^GB1158,2,1^FS',
-      `^FO150,415^BCN,100,Y,N,N^FD${trackingCode}^FS`,
+      '^FO30,412^GB1158,2,1^FS',
+      `^FO150,427^BCN,100,Y,N,N^FD${trackingCode}^FS`,
 
       '^XZ',
     ].join('\n');
