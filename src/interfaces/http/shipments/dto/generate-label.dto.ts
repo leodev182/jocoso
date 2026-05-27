@@ -2,7 +2,7 @@ import { IsString, IsNotEmpty, IsOptional, IsEmail, IsInt, IsPositive, Min } fro
 import { Type } from 'class-transformer';
 
 export class GenerateLabelDto {
-  @IsString() @IsNotEmpty() trackingCode: string;
+  @IsOptional() @IsString() trackingCode?: string;
 
   @IsString() @IsNotEmpty() fullName: string;
   @IsString() @IsNotEmpty() rut: string;
@@ -17,6 +17,6 @@ export class GenerateLabelDto {
   @IsOptional() @IsString() depto?: string;
   @IsOptional() @IsString() referencia?: string;
 
-  @Type(() => Number) @IsInt() @IsPositive() itemCount: number;
-  @Type(() => Number) @Min(0) total: number;
+  @IsOptional() @Type(() => Number) @IsInt() @IsPositive() itemCount?: number;
+  @IsOptional() @Type(() => Number) @Min(0) total?: number;
 }

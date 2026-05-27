@@ -3,7 +3,13 @@ import { AddressProps } from '../../../domain/auth/entities/address.entity';
 
 @Injectable()
 export class ZplLabelService {
-  generate(orderId: string, trackingCode: string, address: AddressProps, itemCount: number, total: number): string {
+  generate(
+    orderId: string,
+    trackingCode: string | null,
+    address: AddressProps,
+    itemCount?: number,
+    total?: number,
+  ): string {
     const shortOrder = orderId.slice(0, 8).toUpperCase();
     const recipient = this.zpl(address.fullName, 40);
     const rut       = this.zpl(`RUT: ${address.rut}`, 40);
@@ -12,7 +18,12 @@ export class ZplLabelService {
     const region    = this.zpl(address.region, 40);
     const phone     = this.zpl(`Tel: ${address.phone}`, 40);
     const email     = address.email ? this.zpl(address.email, 40) : null;
-    const orderLine = this.zpl(`Orden: #${shortOrder}  |  ${itemCount} item(s)  |  $${total.toLocaleString('es-CL')}`, 60);
+
+    const hasTracking = !!trackingCode;
+    const hasOrder    = itemCount != null && total != null;
+    const orderLine   = hasOrder
+      ? this.zpl(`Orden: #${shortOrder}  |  ${itemCount} item(s)  |  $${total!.toLocaleString('es-CL')}`, 60)
+      : null;
 
     return [
       '^XA',
@@ -27,8 +38,10 @@ export class ZplLabelService {
 
       // ── Etiqueta Starken ────────────────────────────────────────────────────
       '^FO30,100^A0N,24,24^FDESPACHO STARKEN^FS',
-      '^FO30,130^A0N,20,20^FDTracking: ^FS',
-      `^FO170,128^A0N,22,22^FD${trackingCode}^FS`,
+      ...(hasTracking ? [
+        '^FO30,130^A0N,20,20^FDTracking: ^FS',
+        `^FO170,128^A0N,22,22^FD${trackingCode}^FS`,
+      ] : []),
 
       // ── Destinatario ────────────────────────────────────────────────────────
       '^FO30,165^GB1158,2,1^FS',
@@ -42,12 +55,16 @@ export class ZplLabelService {
       ...(email ? [`^FO30,350^A0N,20,20^FD${email}^FS`] : []),
 
       // ── Datos orden ─────────────────────────────────────────────────────────
-      '^FO30,376^GB1158,2,1^FS',
-      `^FO30,386^A0N,20,20^FD${orderLine}^FS`,
+      ...(orderLine ? [
+        '^FO30,376^GB1158,2,1^FS',
+        `^FO30,386^A0N,20,20^FD${orderLine}^FS`,
+      ] : []),
 
       // ── Código de barras Code128 ─────────────────────────────────────────
-      '^FO30,412^GB1158,2,1^FS',
-      `^FO150,427^BCN,100,Y,N,N^FD${trackingCode}^FS`,
+      ...(hasTracking ? [
+        '^FO30,412^GB1158,2,1^FS',
+        `^FO150,427^BCN,100,Y,N,N^FD${trackingCode}^FS`,
+      ] : []),
 
       '^XZ',
     ].join('\n');

@@ -38,7 +38,7 @@ export class ShipmentsController {
 
     const zpl = this.zplLabel.generate(
       crypto.randomUUID(),
-      dto.trackingCode,
+      dto.trackingCode ?? null,
       address,
       dto.itemCount,
       dto.total,
