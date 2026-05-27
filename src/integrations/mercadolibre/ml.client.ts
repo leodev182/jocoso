@@ -88,6 +88,24 @@ export class MlClient {
     return this.get(`/orders/${mlOrderId}`);
   }
 
+  async searchPaidOrders(sellerId: string, since: Date): Promise<{ id: number }[]> {
+    const from = since.toISOString();
+    const results: { id: number }[] = [];
+    let offset = 0;
+    const limit = 50;
+
+    while (true) {
+      const res = await this.get<{ results: { id: number }[]; paging: { total: number } }>(
+        `/orders/search?seller=${sellerId}&order.status=paid&order.date_created.from=${from}&limit=${limit}&offset=${offset}`,
+      );
+      results.push(...res.results);
+      if (results.length >= res.paging.total) break;
+      offset += limit;
+    }
+
+    return results;
+  }
+
   async getItemDetail(mlItemId: string): Promise<MlItemDetail> {
     return this.get<MlItemDetail>(`/items/${mlItemId}`);
   }

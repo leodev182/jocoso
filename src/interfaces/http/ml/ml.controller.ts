@@ -20,6 +20,8 @@ import { MlWebhookDto } from './dto/ml-webhook.dto';
 import { SyncProductDto } from './dto/sync-product.dto';
 import { LinkProductDto } from './dto/link-product.dto';
 import { LinkVariantDto } from './dto/link-variant.dto';
+import { ReconcileMlOrdersDto } from './dto/reconcile-ml-orders.dto';
+import { ReconcileMlOrdersUseCase } from '../../../application/ml/use-cases/reconcile-ml-orders.usecase';
 
 @Controller('ml')
 export class MlController {
@@ -34,6 +36,7 @@ export class MlController {
     private readonly linkProduct: LinkProductToMlUseCase,
     private readonly unlinkProduct: UnlinkProductFromMlUseCase,
     private readonly linkVariant: LinkVariantToMlUseCase,
+    private readonly reconcile: ReconcileMlOrdersUseCase,
     private readonly config: ConfigService,
   ) {}
 
@@ -144,5 +147,16 @@ export class MlController {
   async pullProductImages(@Param('productId') productId: string) {
     const images = await this.pullImages.execute(productId);
     return { images };
+  }
+
+  // ─── Reconciliación de órdenes ────────────────────────────────────────────
+
+  @Post('reconcile')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  async reconcileOrders(@Body() dto: ReconcileMlOrdersDto) {
+    const since = new Date(dto.since);
+    const result = await this.reconcile.execute(since);
+    return result;
   }
 }
