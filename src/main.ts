@@ -6,17 +6,17 @@ import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    cors: {
+      origin: (process.env.ALLOWED_ORIGINS ?? 'http://localhost:3000').split(','),
+      credentials: true,
+      methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    },
+  });
   const config = app.get(ConfigService);
 
   app.use(helmet());
-
-  app.enableCors({
-    origin: config.get<string>('ALLOWED_ORIGINS', 'http://localhost:3000').split(','),
-    credentials: true,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: 'Content-Type,Authorization',
-  });
 
   app.setGlobalPrefix('api/v1');
 
