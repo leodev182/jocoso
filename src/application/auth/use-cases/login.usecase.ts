@@ -6,7 +6,11 @@ import { BcryptService } from '../../../infrastructure/security/bcrypt.service';
 import { AuthDomainService } from '../../../domain/auth/services/auth.domain.service';
 import { User } from '../../../domain/auth/entities/user.entity';
 
-const REFRESH_TOKEN_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+const REFRESH_TOKEN_TTL_MS: Record<string, number> = {
+  ADMIN:    7 * 24 * 60 * 60 * 1000,
+  SUPPORT:  7 * 24 * 60 * 60 * 1000,
+  CUSTOMER: 3 * 24 * 60 * 60 * 1000,
+};
 
 @Injectable()
 export class LoginUseCase {
@@ -41,10 +45,11 @@ export class LoginUseCase {
     const rawRefresh = this.tokenService.generateRefreshToken();
     const tokenHash = this.tokenService.hashToken(rawRefresh);
 
+    const ttl = REFRESH_TOKEN_TTL_MS[user.getRole()] ?? REFRESH_TOKEN_TTL_MS['CUSTOMER'];
     await this.tokenRepo.create(
       user.getId(),
       tokenHash,
-      new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+      new Date(Date.now() + ttl),
     );
 
     return { accessToken, refreshToken: rawRefresh };

@@ -33,6 +33,7 @@ model User {
   auditLogs     AuditLog[]
   addresses     Address[]
   orders        Order[]
+  wishlistItems WishlistItem[]
 
   @@index([email])
   @@index([googleId])
@@ -125,8 +126,9 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  variants ProductVariant[]
-  tags     ProductTag[]
+  variants      ProductVariant[]
+  tags          ProductTag[]
+  wishlistItems WishlistItem[]
 
   @@index([slug])
   @@index([status])
@@ -340,6 +342,22 @@ model ProductView {
   @@index([productId])
   @@index([productId, viewedAt])
   @@map("product_views")
+}
+
+// ─── WISHLIST ─────────────────────────────────────────────────────────────────
+
+model WishlistItem {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@map("wishlist_items")
 }
 
 // ─── MERCADOLIBRE INTEGRATION ─────────────────────────────────────────────────
