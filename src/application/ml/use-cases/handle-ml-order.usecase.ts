@@ -50,10 +50,22 @@ export class HandleMlOrderUseCase {
       return;
     }
 
-    // Create internal order
-    const order = Order.create(String(mlOrder.buyer.id), items);
-    order.confirm();
-    await this.orderRepo.save(order);
+    // Create internal order — el buyer debe tener cuenta en jocoso
+    // Si no existe (comprador solo de ML) se saltea la orden pero el stock igual baja
+    let internalOrderId = externalId;
+    try {
+      const order = Order.create(String(mlOrder.buyer.id), items);
+      order.confirm();
+      await this.orderRepo.save(order);
+      internalOrderId = order.getId();
+      this.logger.log(`ML order ${mlOrderId} → orden interna ${internalOrderId}`);
+    } catch (err) {
+      if (err.message?.includes('orders_userId_fkey') || err.code === 'P2003') {
+        this.logger.warn(`ML order ${mlOrderId}: comprador ML ${mlOrder.buyer.id} sin cuenta en jocoso — orden interna omitida`);
+      } else {
+        throw err;
+      }
+    }
 
     // Decrease stock atomically per item
     for (const item of items) {
@@ -62,11 +74,11 @@ export class HandleMlOrderUseCase {
         quantity: item.quantity,
         source: StockSource.ML,
         referenceType: ReferenceType.ML_SALE,
-        referenceId: order.getId(),
+        referenceId: internalOrderId,
         externalId: `${externalId}-${item.variantId}`,
       });
     }
 
-    this.logger.log(`ML order ${mlOrderId} processed → internal order ${order.getId()}`);
+    this.logger.log(`ML order ${mlOrderId} processed — stock descontado`);
   }
 }

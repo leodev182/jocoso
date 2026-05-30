@@ -2,10 +2,12 @@ import {
   Controller, Get, Post, Delete, Query, Body, Param,
   HttpCode, HttpStatus, UseGuards, Logger, Redirect,
 } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { ConfigService } from '@nestjs/config';
 import { SkipThrottle } from '@nestjs/throttler';
 import { MlAuthService } from '../../../integrations/mercadolibre/ml-auth.service';
-import { HandleMlOrderUseCase } from '../../../application/ml/use-cases/handle-ml-order.usecase';
+import { ML_ORDER_QUEUE } from '../../../infrastructure/queue/ml-order.processor';
 import { SyncProductToMlUseCase } from '../../../application/ml/use-cases/sync-product-to-ml.usecase';
 import { PullMlImagesUseCase } from '../../../application/ml/use-cases/pull-ml-images.usecase';
 import { LinkProductToMlUseCase } from '../../../application/ml/use-cases/link-product-to-ml.usecase';
@@ -30,7 +32,7 @@ export class MlController {
   constructor(
     private readonly mlAuth: MlAuthService,
     private readonly mlClient: MlClient,
-    private readonly handleMlOrder: HandleMlOrderUseCase,
+    @InjectQueue(ML_ORDER_QUEUE) private readonly mlOrderQueue: Queue,
     private readonly syncProduct: SyncProductToMlUseCase,
     private readonly pullImages: PullMlImagesUseCase,
     private readonly linkProduct: LinkProductToMlUseCase,
@@ -69,9 +71,12 @@ export class MlController {
     if (dto.topic === 'orders_v2') {
       const mlOrderId = dto.resource.split('/').pop();
       if (mlOrderId) {
-        await this.handleMlOrder.execute(mlOrderId).catch((err) =>
-          this.logger.error(`Failed processing ML order ${mlOrderId}: ${err.message}`),
+        await this.mlOrderQueue.add(
+          'process-order',
+          { mlOrderId },
+          { attempts: 3, backoff: { type: 'exponential', delay: 5000 }, removeOnComplete: true, removeOnFail: 50 },
         );
+        this.logger.log(`ML order ${mlOrderId} enqueued`);
       }
     }
 
