@@ -17,9 +17,8 @@ import { RefreshDto } from './dto/refresh.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 
-// Login y register usan el throttle estricto: 10 req/min por IP
-// Previene brute force sin afectar uso normal
-@Throttle({ strict: { ttl: 60_000, limit: 10 } })
+// Auth endurece el límite global a 10 req/min por IP (anti brute-force en login/register)
+@Throttle({ default: { ttl: 60_000, limit: 10 } })
 @Controller('auth')
 export class AuthController {
   constructor(

@@ -34,18 +34,14 @@ import { HealthController } from './interfaces/http/health/health.controller';
       }),
       inject: [ConfigService],
     }),
-    // Rate limiting global — protege todos los endpoints por defecto
-    // Los webhooks de ML y MP usan @SkipThrottle() para no bloquear a los proveedores
+    // Rate limiting global — protege todos los endpoints por defecto.
+    // Los webhooks de ML y MP usan @SkipThrottle() para no bloquear a los proveedores.
+    // El auth controller endurece este límite a 10 req/min con @Throttle (anti brute-force).
     ThrottlerModule.forRoot([
       {
         name: 'default',
         ttl: 60_000,   // ventana de 60 segundos
         limit: 120,    // 120 req/min por IP — tráfico normal de app
-      },
-      {
-        name: 'strict',
-        ttl: 60_000,
-        limit: 10,     // 10 req/min — para auth (login, register)
       },
     ]),
     ScheduleModule.forRoot(),
