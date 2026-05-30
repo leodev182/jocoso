@@ -9,8 +9,6 @@ import { DeleteTagUseCase } from '../../../application/products/use-cases/delete
 import { CreateTagDto } from './dto/create-tag.dto';
 
 @Controller('tags')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN, Role.SUPPORT)
 export class TagsController {
   constructor(
     private readonly createTag: CreateTagUseCase,
@@ -18,7 +16,14 @@ export class TagsController {
     private readonly deleteTag: DeleteTagUseCase,
   ) {}
 
+  @Get('storefront')
+  listPublic() {
+    return this.listTags.execute();
+  }
+
   @Get()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN, Role.SUPPORT)
   list() {
     return this.listTags.execute();
   }

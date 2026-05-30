@@ -18,6 +18,7 @@ import { ListTagsUseCase } from '../../application/products/use-cases/list-tags.
 import { DeleteTagUseCase } from '../../application/products/use-cases/delete-tag.usecase';
 import { AddTagToProductUseCase } from '../../application/products/use-cases/add-tag-to-product.usecase';
 import { RemoveTagFromProductUseCase } from '../../application/products/use-cases/remove-tag-from-product.usecase';
+import { ListStorefrontProductsUseCase } from '../../application/products/use-cases/list-storefront-products.usecase';
 import { ProductPrismaRepository } from '../../infrastructure/products/product.prisma-repo';
 import { ProductVariantPrismaRepository } from '../../infrastructure/products/product-variant.prisma-repo';
 import { ProductViewPrismaRepository } from '../../infrastructure/products/product-view.prisma-repo';
@@ -43,6 +44,7 @@ import { TagsController } from '../../interfaces/http/tags/tags.controller';
     DeleteTagUseCase,
     AddTagToProductUseCase,
     RemoveTagFromProductUseCase,
+    ListStorefrontProductsUseCase,
     { provide: PRODUCT_REPOSITORY, useClass: ProductPrismaRepository },
     { provide: PRODUCT_VARIANT_REPOSITORY, useClass: ProductVariantPrismaRepository },
     { provide: PRODUCT_VIEW_REPOSITORY, useClass: ProductViewPrismaRepository },

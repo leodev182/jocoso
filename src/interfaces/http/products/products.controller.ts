@@ -10,6 +10,8 @@ import { UpdateVariantUseCase } from '../../../application/products/use-cases/up
 import { UpdateProductUseCase } from '../../../application/products/use-cases/update-product.usecase';
 import { AddTagToProductUseCase } from '../../../application/products/use-cases/add-tag-to-product.usecase';
 import { RemoveTagFromProductUseCase } from '../../../application/products/use-cases/remove-tag-from-product.usecase';
+import { ListStorefrontProductsUseCase } from '../../../application/products/use-cases/list-storefront-products.usecase';
+import { ListStorefrontQueryDto } from './dto/list-storefront-query.dto';
 import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
@@ -34,6 +36,7 @@ export class ProductsController {
     private readonly updateProduct: UpdateProductUseCase,
     private readonly addTag: AddTagToProductUseCase,
     private readonly removeTag: RemoveTagFromProductUseCase,
+    private readonly listStorefront: ListStorefrontProductsUseCase,
   ) {}
 
   @Get()
@@ -53,8 +56,18 @@ export class ProductsController {
     return this.getTrending.execute(period, limit);
   }
 
+  @Get('storefront')
+  getStorefront(@Query() query: ListStorefrontQueryDto) {
+    return this.listStorefront.execute({
+      featured: query.featured,
+      tagSlug: query.tag,
+      search: query.search,
+      page: query.page,
+      limit: query.limit,
+    });
+  }
+
   @Get(':id')
-  @UseGuards(JwtAuthGuard)
   getById(@Param('id', ParseUUIDPipe) id: string, @Request() req: any) {
     this.trackView.track(id, req.user?.id);
     return this.getProduct.getById(id);

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
-import { IProductRepository } from '../../domain/products/repositories/product.repository';
+import { IProductRepository, StorefrontProductFilters } from '../../domain/products/repositories/product.repository';
 import { Product, ProductStatus, ProductProps } from '../../domain/products/entities/product.entity';
 
 @Injectable()
@@ -16,6 +16,23 @@ export class ProductPrismaRepository implements IProductRepository {
     const where: any = {};
     if (status) where.status = status;
     if (search) where.title = { contains: search, mode: 'insensitive' };
+    const [rows, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+    return { products: rows.map((r) => this.toEntity(r)), total };
+  }
+
+  async findPublic({ featured, tagSlug, search, page = 1, limit = 12 }: StorefrontProductFilters): Promise<{ products: Product[]; total: number }> {
+    const where: any = { status: 'ACTIVE' };
+    if (featured !== undefined) where.featured = featured;
+    if (search) where.title = { contains: search, mode: 'insensitive' };
+    if (tagSlug) where.productTags = { some: { tag: { slug: tagSlug, isActive: true } } };
     const [rows, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
