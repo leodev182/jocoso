@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Audit } from '../../../infrastructure/audit/audit.decorator';
 import { RegisterUseCase } from '../../../application/auth/use-cases/register.usecase';
 import { LoginUseCase } from '../../../application/auth/use-cases/login.usecase';
+import { GoogleLoginUseCase } from '../../../application/auth/use-cases/google-login.usecase';
 import { RefreshUseCase } from '../../../application/auth/use-cases/refresh.usecase';
 import { LogoutUseCase } from '../../../application/auth/use-cases/logout.usecase';
 import { Setup2faUseCase } from '../../../application/auth/use-cases/setup-2fa.usecase';
@@ -13,6 +14,7 @@ import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.g
 import { CurrentUser } from '../common/decorators/current-user.decorator';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { GoogleLoginDto } from './dto/google-login.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { Verify2faDto } from './dto/verify-2fa.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -24,6 +26,7 @@ export class AuthController {
   constructor(
     private readonly register: RegisterUseCase,
     private readonly login: LoginUseCase,
+    private readonly googleLogin: GoogleLoginUseCase,
     private readonly refresh: RefreshUseCase,
     private readonly logout: LogoutUseCase,
     private readonly setup2fa: Setup2faUseCase,
@@ -41,6 +44,12 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   handleLogin(@Body() dto: LoginDto) {
     return this.login.execute(dto.email, dto.password);
+  }
+
+  @Post('google')
+  @HttpCode(HttpStatus.OK)
+  handleGoogle(@Body() dto: GoogleLoginDto) {
+    return this.googleLogin.execute(dto.idToken);
   }
 
   @Post('refresh')

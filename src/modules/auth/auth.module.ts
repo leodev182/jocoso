@@ -11,6 +11,8 @@ import { REFRESH_TOKEN_REPOSITORY } from '../../domain/auth/repositories/refresh
 // Application
 import { RegisterUseCase } from '../../application/auth/use-cases/register.usecase';
 import { LoginUseCase } from '../../application/auth/use-cases/login.usecase';
+import { GoogleLoginUseCase } from '../../application/auth/use-cases/google-login.usecase';
+import { GOOGLE_VERIFIER } from '../../application/auth/ports/google-verifier';
 import { RefreshUseCase } from '../../application/auth/use-cases/refresh.usecase';
 import { LogoutUseCase } from '../../application/auth/use-cases/logout.usecase';
 import { Setup2faUseCase } from '../../application/auth/use-cases/setup-2fa.usecase';
@@ -26,6 +28,7 @@ import { BcryptService } from '../../infrastructure/security/bcrypt.service';
 import { TotpService } from '../../infrastructure/security/totp.service';
 import { JwtTokenService } from '../../infrastructure/security/jwt/jwt-token.service';
 import { JwtStrategy } from '../../infrastructure/security/jwt/jwt.strategy';
+import { GoogleVerifierService } from '../../infrastructure/security/google/google-verifier.service';
 
 // Interfaces
 import { AuthController } from '../../interfaces/http/auth/auth.controller';
@@ -49,6 +52,7 @@ import { AuthController } from '../../interfaces/http/auth/auth.controller';
     // Application use cases
     RegisterUseCase,
     LoginUseCase,
+    GoogleLoginUseCase,
     RefreshUseCase,
     LogoutUseCase,
     Setup2faUseCase,
@@ -60,6 +64,7 @@ import { AuthController } from '../../interfaces/http/auth/auth.controller';
     { provide: USER_REPOSITORY, useClass: UserPrismaRepository },
     { provide: REFRESH_TOKEN_REPOSITORY, useClass: RefreshTokenPrismaRepository },
     { provide: TOKEN_SERVICE, useClass: JwtTokenService },
+    { provide: GOOGLE_VERIFIER, useClass: GoogleVerifierService },
 
     // Infrastructure services
     BcryptService,
