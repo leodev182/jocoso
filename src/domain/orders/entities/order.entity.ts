@@ -48,12 +48,12 @@ export class Order {
     private updatedAt: Date,
   ) {}
 
-  static create(userId: string, items: Omit<OrderItemProps, 'id' | 'orderId'>[]): Order {
+  static create(userId: string, items: Omit<OrderItemProps, 'id' | 'orderId'>[], addressId: string | null = null): Order {
     const id = crypto.randomUUID();
     const now = new Date();
     const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const orderItems: OrderItemProps[] = items.map((i) => ({ id: crypto.randomUUID(), orderId: id, ...i }));
-    return new Order(id, userId, null, OrderStatus.PENDING, totalAmount, null, null, null, null, orderItems, now, now);
+    return new Order(id, userId, addressId, OrderStatus.PENDING, totalAmount, null, null, null, null, orderItems, now, now);
   }
 
   static reconstitute(props: OrderProps): Order {

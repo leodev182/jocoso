@@ -34,7 +34,7 @@ export class OrdersController {
   @Post()
   @Audit({ action: 'ORDER_CREATE', resource: 'orders' })
   create(@Body() dto: CreateOrderDto, @CurrentUser() user: { id: string }) {
-    return this.createOrder.execute({ userId: user.id, items: dto.items });
+    return this.createOrder.execute({ userId: user.id, items: dto.items, addressId: dto.addressId });
   }
 
   @Get('my')

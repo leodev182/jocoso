@@ -34,7 +34,7 @@ export class OrderPrismaRepository implements IOrderRepository {
     const d = order.toPersistence();
     await this.prisma.order.create({
       data: {
-        id: d.id, userId: d.userId, status: d.status as any,
+        id: d.id, userId: d.userId, addressId: d.addressId, status: d.status as any,
         totalAmount: d.totalAmount,
         items: { create: d.items.map((i) => ({ id: i.id, variantId: i.variantId, quantity: i.quantity, price: i.price })) },
       },
