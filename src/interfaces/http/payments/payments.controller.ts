@@ -1,5 +1,5 @@
 import {
-  Controller, Post, Body, Param, Headers, UseGuards,
+  Controller, Post, Body, Param, Query, Headers, UseGuards,
   HttpCode, HttpStatus, ParseUUIDPipe, UnauthorizedException, Logger,
 } from '@nestjs/common';
 import { SkipThrottle } from '@nestjs/throttler';
@@ -33,13 +33,18 @@ export class PaymentsController {
   @SkipThrottle() // MercadoPago llama este endpoint — no limitar IPs externas de su infraestructura
   @HttpCode(HttpStatus.OK)
   async webhook(
-    @Body() body: { type: string; data: { id: string } },
+    @Body() body: { type?: string; data?: { id: string } },
+    @Query() query: Record<string, string>,
     @Headers('x-signature') xSignature: string,
     @Headers('x-request-id') xRequestId: string,
   ) {
+    // MP firma con el data.id que viene en el QUERY STRING (no en el body).
+    // Las notificaciones legacy (?id=...&topic=...) ni siquiera traen body.data.id.
+    const dataId = query['data.id'] ?? query['id'] ?? body?.data?.id ?? '';
+
     // Validate HMAC signature from MercadoPago
     if (xSignature) {
-      const valid = this.mpValidator.validate(xSignature, xRequestId ?? '', body?.data?.id ?? '');
+      const valid = this.mpValidator.validate(xSignature, xRequestId ?? '', dataId);
       if (!valid) {
         this.logger.warn('Invalid MP webhook signature');
         throw new UnauthorizedException('Invalid webhook signature');
