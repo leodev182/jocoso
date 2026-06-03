@@ -59,30 +59,37 @@ export class PaymentsController {
     const mpPaymentId = body.data.id;
     this.logger.log(`MP webhook: payment ${mpPaymentId}`);
 
-    // Fetch real payment status from MP
-    const mpPayment = await this.mpClient.getPayment(mpPaymentId);
-    const orderId = mpPayment.external_reference;
+    // Procesamiento tolerante a fallos: nunca devolver 500 a MP (evita tormenta de
+    // reintentos por notificaciones no procesables, ej. pagos inexistentes del simulador).
+    try {
+      const mpPayment = await this.mpClient.getPayment(mpPaymentId);
+      const orderId = mpPayment.external_reference;
 
-    if (!orderId) {
-      this.logger.warn(`MP payment ${mpPaymentId} has no external_reference`);
-      return { received: true };
+      if (!orderId) {
+        this.logger.warn(`MP payment ${mpPaymentId} has no external_reference`);
+        return { received: true };
+      }
+
+      const status = mpPayment.status === 'approved' ? 'approved'
+        : mpPayment.status === 'rejected' ? 'rejected'
+        : null;
+
+      if (!status) {
+        this.logger.log(`MP payment ${mpPaymentId} status=${mpPayment.status} — no action`);
+        return { received: true };
+      }
+
+      await this.handleWebhook.execute({
+        paymentId: orderId,         // we use orderId to find our payment
+        gatewayId: String(mpPaymentId),
+        status,
+        raw: mpPayment as any,
+      });
+    } catch (err) {
+      this.logger.error(
+        `Error procesando webhook de pago ${mpPaymentId}: ${err instanceof Error ? err.message : String(err)}`,
+      );
     }
-
-    const status = mpPayment.status === 'approved' ? 'approved'
-      : mpPayment.status === 'rejected' ? 'rejected'
-      : null;
-
-    if (!status) {
-      this.logger.log(`MP payment ${mpPaymentId} status=${mpPayment.status} — no action`);
-      return { received: true };
-    }
-
-    await this.handleWebhook.execute({
-      paymentId: orderId,         // we use orderId to find our payment
-      gatewayId: String(mpPaymentId),
-      status,
-      raw: mpPayment as any,
-    });
 
     return { received: true };
   }
