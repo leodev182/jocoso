@@ -6,6 +6,7 @@ export interface IOrderRepository {
   findAll(status?: string, page?: number, limit?: number): Promise<{ orders: Order[]; total: number }>;
   save(order: Order): Promise<void>;
   update(order: Order): Promise<void>;
+  delete(id: string): Promise<void>;
 }
 
 export const ORDER_REPOSITORY = Symbol('IOrderRepository');

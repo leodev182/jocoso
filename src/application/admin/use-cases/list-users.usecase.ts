@@ -12,8 +12,11 @@ export class ListUsersUseCase {
     return {
       data: users.map((u) => ({
         id: u.getId(),
+        name: u.getName(),
         email: u.getEmail(),
+        phone: u.getPhone(),
         role: u.getRole(),
+        isActive: u.getIsActive(),
       })),
       total,
       page,

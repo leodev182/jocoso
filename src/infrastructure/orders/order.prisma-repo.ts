@@ -53,6 +53,16 @@ export class OrderPrismaRepository implements IOrderRepository {
     });
   }
 
+  async delete(id: string): Promise<void> {
+    // Payment no tiene cascade hacia Order, así que limpiamos pago + sus logs antes.
+    // OrderItem sí cascadea al borrar la orden.
+    await this.prisma.$transaction(async (tx) => {
+      await tx.paymentEventLog.deleteMany({ where: { payment: { orderId: id } } });
+      await tx.payment.deleteMany({ where: { orderId: id } });
+      await tx.order.delete({ where: { id } });
+    });
+  }
+
   private toEntity(row: any): Order {
     return Order.reconstitute({
       id: row.id, userId: row.userId, addressId: row.addressId ?? null,

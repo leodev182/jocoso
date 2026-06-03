@@ -11,9 +11,11 @@ import { Role } from '../../../domain/auth/entities/user.entity';
 import { PaginationDto } from '../common/dto/pagination.dto';
 import { ListUsersUseCase } from '../../../application/admin/use-cases/list-users.usecase';
 import { ChangeUserRoleUseCase } from '../../../application/admin/use-cases/change-user-role.usecase';
+import { SetUserActiveUseCase } from '../../../application/admin/use-cases/set-user-active.usecase';
 import { ListAuditLogsUseCase } from '../../../application/admin/use-cases/list-audit-logs.usecase';
 import { GetAdminStatsUseCase } from '../../../application/admin/use-cases/get-admin-stats.usecase';
 import { ChangeRoleDto } from './dto/change-role.dto';
+import { SetUserActiveDto } from './dto/set-user-active.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -22,6 +24,7 @@ export class AdminController {
   constructor(
     private readonly listUsers: ListUsersUseCase,
     private readonly changeRole: ChangeUserRoleUseCase,
+    private readonly setUserActive: SetUserActiveUseCase,
     private readonly listAuditLogs: ListAuditLogsUseCase,
     private readonly getStats: GetAdminStatsUseCase,
   ) {}
@@ -46,6 +49,17 @@ export class AdminController {
     @Body() dto: ChangeRoleDto,
   ) {
     return this.changeRole.execute(id, dto.role);
+  }
+
+  // Banear / reactivar usuario (soft delete: isActive)
+  @Patch('users/:id/status')
+  @Audit({ action: 'USER_STATUS_CHANGE', resource: 'admin' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  setUserStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: SetUserActiveDto,
+  ) {
+    return this.setUserActive.execute(id, dto.isActive);
   }
 
   @Get('logs')
