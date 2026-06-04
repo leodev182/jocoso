@@ -17,15 +17,15 @@ export class ApprovePaymentUseCase {
   ) {}
 
   async execute(paymentId: string, gatewayId: string, payload?: Record<string, any>): Promise<void> {
-    const payment = await this.paymentRepo.findById(paymentId);
-    if (!payment) throw new NotFoundException(`Payment ${paymentId} not found`);
+    const payment = await this.paymentRepo.findByOrderId(paymentId);
+    if (!payment) throw new NotFoundException(`Payment for order ${paymentId} not found`);
 
     this.paymentDomain.assertPending(payment);
     const prevStatus = payment.getStatus();
 
     payment.approve(gatewayId);
 
-    const log = PaymentEventLog.create(paymentId, prevStatus, PaymentStatus.APPROVED, 'webhook', payload);
+    const log = PaymentEventLog.create(payment.getId(), prevStatus, PaymentStatus.APPROVED, 'webhook', payload);
     await this.paymentRepo.update(payment, log);
 
     const order = await this.orderRepo.findById(payment.getOrderId());
