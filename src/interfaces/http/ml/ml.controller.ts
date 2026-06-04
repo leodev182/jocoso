@@ -74,7 +74,13 @@ export class MlController {
         await this.mlOrderQueue.add(
           'process-order',
           { mlOrderId },
-          { attempts: 3, backoff: { type: 'exponential', delay: 5000 }, removeOnComplete: true, removeOnFail: 50 },
+          {
+            jobId: `ml-order-${mlOrderId}`,
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 5000 },
+            removeOnComplete: true,
+            removeOnFail: 50,
+          },
         );
         this.logger.log(`ML order ${mlOrderId} enqueued`);
       }
