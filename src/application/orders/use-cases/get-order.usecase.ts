@@ -58,7 +58,12 @@ export class GetOrderUseCase {
 
   async getByUser(userId: string, page = 1, limit = 20) {
     const { orders, total } = await this.orderRepo.findByUserId(userId, page, limit);
-    const data = await Promise.all(orders.map((o) => this.withUser(o)));
+    const data = await Promise.all(
+      orders.map(async (o) => {
+        const base = o.toPersistence();
+        return { ...base, items: await this.enrichItems(base.items) };
+      }),
+    );
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
