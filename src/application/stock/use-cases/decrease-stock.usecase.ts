@@ -1,8 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, Optional } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { IStockRepository, STOCK_REPOSITORY } from '../../../domain/stock/repositories/stock.repository';
 import { IStockMovementRepository, STOCK_MOVEMENT_REPOSITORY } from '../../../domain/stock/repositories/stock-movement.repository';
 import { StockDomainService } from '../../../domain/stock/services/stock.domain.service';
 import { StockMovement, StockSource, ReferenceType } from '../../../domain/stock/entities/stock-movement.entity';
+import { STOCK_SYNC_QUEUE } from '../../../infrastructure/queue/stock-sync.processor';
 
 export interface DecreaseStockCommand {
   variantId: string;
@@ -20,6 +23,7 @@ export class DecreaseStockUseCase {
     @Inject(STOCK_REPOSITORY) private readonly stockRepo: IStockRepository,
     @Inject(STOCK_MOVEMENT_REPOSITORY) private readonly movementRepo: IStockMovementRepository,
     private readonly stockDomain: StockDomainService,
+    @Optional() @InjectQueue(STOCK_SYNC_QUEUE) private readonly syncQueue?: Queue,
   ) {}
 
   async execute(cmd: DecreaseStockCommand): Promise<void> {
@@ -44,5 +48,11 @@ export class DecreaseStockUseCase {
     });
 
     await this.stockRepo.decreaseWithLock(cmd.variantId, cmd.quantity, movement);
+
+    // Sync a ML cuando la venta viene del storefront web o de un ajuste admin.
+    // Las ventas ML (StockSource.ML) no se sincronizan — ML ya conoce su propio stock.
+    if (cmd.source !== StockSource.ML && this.syncQueue) {
+      await this.syncQueue.add('sync-variant', { variantId: cmd.variantId });
+    }
   }
 }
