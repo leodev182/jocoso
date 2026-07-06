@@ -8,12 +8,12 @@ export class ProductPrismaRepository implements IProductRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findById(id: string): Promise<Product | null> {
-    const row = await this.prisma.product.findUnique({ where: { id } });
+    const row = await this.prisma.product.findUnique({ where: { id, deletedAt: null } });
     return row ? this.toEntity(row) : null;
   }
 
   async findAll(status?: string, page = 1, limit = 20, search?: string): Promise<{ products: Product[]; total: number }> {
-    const where: any = {};
+    const where: any = { deletedAt: null };
     if (status) where.status = status;
     if (search) where.title = { contains: search, mode: 'insensitive' };
     const [rows, total] = await this.prisma.$transaction([
@@ -29,7 +29,7 @@ export class ProductPrismaRepository implements IProductRepository {
   }
 
   async findPublic({ featured, tagSlug, search, page = 1, limit = 12 }: StorefrontProductFilters): Promise<{ products: Product[]; total: number }> {
-    const where: any = { status: 'ACTIVE' };
+    const where: any = { status: 'ACTIVE', deletedAt: null };
     if (featured !== undefined) where.featured = featured;
     if (search) where.title = { contains: search, mode: 'insensitive' };
     if (tagSlug) where.tags = { some: { tag: { slug: tagSlug, isActive: true } } };
@@ -61,7 +61,7 @@ export class ProductPrismaRepository implements IProductRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.prisma.product.delete({ where: { id } });
+    await this.prisma.product.update({ where: { id }, data: { deletedAt: new Date() } });
   }
 
   private toEntity(row: any): Product {

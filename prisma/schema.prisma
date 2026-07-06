@@ -125,6 +125,7 @@ model Product {
   images      String[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+  deletedAt   DateTime?
 
   variants      ProductVariant[]
   tags          ProductTag[]
