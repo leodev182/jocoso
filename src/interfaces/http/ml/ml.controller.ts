@@ -24,6 +24,7 @@ import { LinkProductDto } from './dto/link-product.dto';
 import { LinkVariantDto } from './dto/link-variant.dto';
 import { ReconcileMlOrdersDto } from './dto/reconcile-ml-orders.dto';
 import { ReconcileMlOrdersUseCase } from '../../../application/ml/use-cases/reconcile-ml-orders.usecase';
+import { ML_STOCK_SYNC_QUEUE } from '../../../infrastructure/queue/ml-stock-sync.processor';
 
 @Controller('ml')
 export class MlController {
@@ -33,6 +34,7 @@ export class MlController {
     private readonly mlAuth: MlAuthService,
     private readonly mlClient: MlClient,
     @InjectQueue(ML_ORDER_QUEUE) private readonly mlOrderQueue: Queue,
+    @InjectQueue(ML_STOCK_SYNC_QUEUE) private readonly mlStockQueue: Queue,
     private readonly syncProduct: SyncProductToMlUseCase,
     private readonly pullImages: PullMlImagesUseCase,
     private readonly linkProduct: LinkProductToMlUseCase,
@@ -83,6 +85,26 @@ export class MlController {
           },
         );
         this.logger.log(`ML order ${mlOrderId} enqueued`);
+      }
+    }
+
+    if (dto.topic === 'items' || dto.topic === 'stock') {
+      const match = dto.resource.match(/\/items\/([^/?]+)/);
+      const mlItemId = match?.[1];
+      if (mlItemId) {
+        await this.mlStockQueue.add(
+          'sync-item-stock',
+          { mlItemId },
+          {
+            jobId: `ml-stock-${mlItemId}`,
+            delay: 3000,
+            attempts: 3,
+            backoff: { type: 'exponential', delay: 5000 },
+            removeOnComplete: true,
+            removeOnFail: 50,
+          },
+        );
+        this.logger.log(`ML item ${mlItemId} stock sync enqueued`);
       }
     }
 

@@ -1,9 +1,8 @@
 import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
 import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../../domain/products/repositories/product.repository';
-import { IncreaseStockUseCase } from '../../stock/use-cases/increase-stock.usecase';
-import { StockSource, ReferenceType } from '../../../domain/stock/entities/stock-movement.entity';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
+import { SyncMlStockUseCase } from './sync-ml-stock.usecase';
 
 export interface VariantMapping {
   localVariantId: string;
@@ -23,8 +22,8 @@ export class LinkProductToMlUseCase {
   constructor(
     private readonly mlClient: MlClient,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepo: IProductRepository,
-    private readonly increaseStock: IncreaseStockUseCase,
     private readonly prisma: PrismaService,
+    private readonly syncMlStock: SyncMlStockUseCase,
   ) {}
 
   async execute(cmd: LinkProductToMlCommand): Promise<void> {
@@ -56,25 +55,9 @@ export class LinkProductToMlUseCase {
         data: { mlVariationId: mapping.mlVariationId ?? null, images: variantImages },
       });
 
-      const quantity = mapping.mlVariationId
-        ? (mlItem.variations?.find(v => String(v.id) === String(mapping.mlVariationId))?.available_quantity ?? 0)
-        : (mlItem.available_quantity ?? 0);
-
-      this.logger.log(`Variant ${mapping.localVariantId}: ML quantity=${quantity}`);
-      if (quantity > 0) {
-        try {
-          await this.increaseStock.execute({
-            variantId: mapping.localVariantId,
-            quantity,
-            source: StockSource.ML,
-            referenceType: ReferenceType.MANUAL,
-            referenceId: cmd.mlItemId,
-          });
-        } catch (err) {
-          this.logger.warn(`Could not pull stock for variant ${mapping.localVariantId}: ${err.message}`);
-        }
-      }
     }
+
+    await this.syncMlStock.execute(cmd.mlItemId);
 
     this.logger.log(`Product ${cmd.productId} linked to ML item ${cmd.mlItemId}`);
   }

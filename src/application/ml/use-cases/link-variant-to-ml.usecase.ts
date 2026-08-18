@@ -1,9 +1,8 @@
 import { Injectable, Inject, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../../domain/products/repositories/product.repository';
-import { IncreaseStockUseCase } from '../../stock/use-cases/increase-stock.usecase';
-import { StockSource, ReferenceType } from '../../../domain/stock/entities/stock-movement.entity';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
+import { SyncMlStockUseCase } from './sync-ml-stock.usecase';
 
 @Injectable()
 export class LinkVariantToMlUseCase {
@@ -12,8 +11,8 @@ export class LinkVariantToMlUseCase {
   constructor(
     private readonly mlClient: MlClient,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepo: IProductRepository,
-    private readonly increaseStock: IncreaseStockUseCase,
     private readonly prisma: PrismaService,
+    private readonly syncMlStock: SyncMlStockUseCase,
   ) {}
 
   async execute(productId: string, variantId: string, mlVariationId: string): Promise<void> {
@@ -35,22 +34,7 @@ export class LinkVariantToMlUseCase {
       data: { mlVariationId, images: variantImages },
     });
 
-    const quantity = variation.available_quantity ?? 0;
-    this.logger.log(`Variant ${variantId}: ML variation ${mlVariationId}, quantity=${quantity}`);
-
-    if (quantity > 0) {
-      try {
-        await this.increaseStock.execute({
-          variantId,
-          quantity,
-          source: StockSource.ML,
-          referenceType: ReferenceType.MANUAL,
-          referenceId: product.getMlItemId()!,
-        });
-      } catch (err) {
-        this.logger.warn(`Could not pull stock for variant ${variantId}: ${err.message}`);
-      }
-    }
+    await this.syncMlStock.execute(product.getMlItemId()!);
 
     this.logger.log(`Variant ${variantId} linked to ML variation ${mlVariationId}`);
   }

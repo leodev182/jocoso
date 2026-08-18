@@ -9,9 +9,11 @@ import { LinkProductToMlUseCase } from '../../application/ml/use-cases/link-prod
 import { UnlinkProductFromMlUseCase } from '../../application/ml/use-cases/unlink-product-from-ml.usecase';
 import { LinkVariantToMlUseCase } from '../../application/ml/use-cases/link-variant-to-ml.usecase';
 import { ReconcileMlOrdersUseCase } from '../../application/ml/use-cases/reconcile-ml-orders.usecase';
+import { SyncMlStockUseCase } from '../../application/ml/use-cases/sync-ml-stock.usecase';
 import { MlController } from '../../interfaces/http/ml/ml.controller';
 import { StockSyncProcessor, STOCK_SYNC_QUEUE } from '../../infrastructure/queue/stock-sync.processor';
 import { MlOrderProcessor, ML_ORDER_QUEUE } from '../../infrastructure/queue/ml-order.processor';
+import { MlStockSyncProcessor, ML_STOCK_SYNC_QUEUE } from '../../infrastructure/queue/ml-stock-sync.processor';
 import { MlReconcileScheduler } from '../../infrastructure/queue/ml-reconcile.scheduler';
 import { ProductsModule } from '../products/products.module';
 import { OrdersModule } from '../orders/orders.module';
@@ -24,6 +26,7 @@ import { StockModule } from '../stock/stock.module';
     StockModule,
     BullModule.registerQueue({ name: STOCK_SYNC_QUEUE }),
     BullModule.registerQueue({ name: ML_ORDER_QUEUE }),
+    BullModule.registerQueue({ name: ML_STOCK_SYNC_QUEUE }),
   ],
   controllers: [MlController],
   providers: [
@@ -36,9 +39,11 @@ import { StockModule } from '../stock/stock.module';
     UnlinkProductFromMlUseCase,
     LinkVariantToMlUseCase,
     ReconcileMlOrdersUseCase,
+    SyncMlStockUseCase,
     MlReconcileScheduler,
     StockSyncProcessor,
     MlOrderProcessor,
+    MlStockSyncProcessor,
   ],
   exports: [MlAuthService, MlClient],
 })
