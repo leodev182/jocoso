@@ -5,6 +5,7 @@ export interface IProductVariantRepository {
   findBySku(sku: string): Promise<ProductVariant | null>;
   findByProductId(productId: string): Promise<ProductVariant[]>;
   findByMlVariationId(mlVariationId: string): Promise<ProductVariant | null>;
+  findByMlListingAndVariation(mlItemId: string, mlVariationId: string | null): Promise<ProductVariant | null>;
   save(variant: ProductVariant): Promise<void>;
   update(variant: ProductVariant): Promise<void>;
   delete(id: string): Promise<void>;

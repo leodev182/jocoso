@@ -128,6 +128,7 @@ model Product {
   deletedAt   DateTime?
 
   variants      ProductVariant[]
+  mlListings    MlListing[]
   tags          ProductTag[]
   wishlistItems WishlistItem[]
 
@@ -149,10 +150,11 @@ model ProductVariant {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  product        Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
-  attributes     VariantAttribute[]
-  stockMovements StockMovement[]
-  orderItems     OrderItem[]
+  product           Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  attributes        VariantAttribute[]
+  stockMovements    StockMovement[]
+  orderItems        OrderItem[]
+  mlListingVariants MlListingVariant[]
 
   @@index([productId])
   @@map("product_variants")
@@ -373,4 +375,36 @@ model MlToken {
   updatedAt    DateTime @updatedAt
 
   @@map("ml_tokens")
+}
+
+model MlListing {
+  id        String   @id @default(uuid())
+  productId String
+  mlItemId  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product  Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variants MlListingVariant[]
+
+  @@index([productId])
+  @@map("ml_listings")
+}
+
+model MlListingVariant {
+  id            String   @id @default(uuid())
+  listingId     String
+  variantId     String
+  mlVariationId String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  listing MlListing      @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, variantId])
+  @@unique([listingId, mlVariationId])
+  @@index([variantId])
+  @@index([mlVariationId])
+  @@map("ml_listing_variants")
 }

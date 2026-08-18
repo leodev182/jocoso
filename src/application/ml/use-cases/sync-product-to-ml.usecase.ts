@@ -74,6 +74,19 @@ export class SyncProductToMlUseCase {
       }
     }
 
+    const listing = await this.prisma.mlListing.create({
+      data: { productId: cmd.productId, mlItemId: created.id },
+    });
+    for (let i = 0; i < variants.length; i++) {
+      await this.prisma.mlListingVariant.create({
+        data: {
+          listingId: listing.id,
+          variantId: variants[i].getId(),
+          mlVariationId: hasVariations ? String((created as any).variations?.[i]?.id ?? '') || null : null,
+        },
+      });
+    }
+
     // Pull image URLs from ML item and persist them
     try {
       const mlItem = await this.mlClient.getItem(created.id);

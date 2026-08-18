@@ -9,7 +9,7 @@ import { LinkProductToMlUseCase } from '../../application/ml/use-cases/link-prod
 import { UnlinkProductFromMlUseCase } from '../../application/ml/use-cases/unlink-product-from-ml.usecase';
 import { LinkVariantToMlUseCase } from '../../application/ml/use-cases/link-variant-to-ml.usecase';
 import { ReconcileMlOrdersUseCase } from '../../application/ml/use-cases/reconcile-ml-orders.usecase';
-import { SyncMlStockUseCase } from '../../application/ml/use-cases/sync-ml-stock.usecase';
+import { SyncLocalStockToMlUseCase } from '../../application/ml/use-cases/sync-local-stock-to-ml.usecase';
 import { MlController } from '../../interfaces/http/ml/ml.controller';
 import { StockSyncProcessor, STOCK_SYNC_QUEUE } from '../../infrastructure/queue/stock-sync.processor';
 import { MlOrderProcessor, ML_ORDER_QUEUE } from '../../infrastructure/queue/ml-order.processor';
@@ -39,7 +39,7 @@ import { StockModule } from '../stock/stock.module';
     UnlinkProductFromMlUseCase,
     LinkVariantToMlUseCase,
     ReconcileMlOrdersUseCase,
-    SyncMlStockUseCase,
+    SyncLocalStockToMlUseCase,
     MlReconcileScheduler,
     StockSyncProcessor,
     MlOrderProcessor,

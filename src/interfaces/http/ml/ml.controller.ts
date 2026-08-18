@@ -97,7 +97,7 @@ export class MlController {
           { mlItemId },
           {
             jobId: `ml-stock-${mlItemId}`,
-            delay: 3000,
+            delay: 10000,
             attempts: 3,
             backoff: { type: 'exponential', delay: 5000 },
             removeOnComplete: true,

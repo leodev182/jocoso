@@ -42,7 +42,7 @@ export class IncreaseStockUseCase {
 
     await this.stockRepo.increase(cmd.variantId, cmd.quantity, movement);
 
-    if (cmd.source === StockSource.ADMIN && this.syncQueue) {
+    if (this.syncQueue) {
       await this.syncQueue.add('sync-variant', { variantId: cmd.variantId });
     }
   }

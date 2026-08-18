@@ -6,6 +6,8 @@ import { DecreaseStockUseCase } from '../../stock/use-cases/decrease-stock.useca
 import { Order } from '../../../domain/orders/entities/order.entity';
 import { StockSource, ReferenceType } from '../../../domain/stock/entities/stock-movement.entity';
 
+export type MlOrderProcessResult = 'processed' | 'skipped';
+
 @Injectable()
 export class HandleMlOrderUseCase {
   private readonly logger = new Logger(HandleMlOrderUseCase.name);
@@ -17,24 +19,24 @@ export class HandleMlOrderUseCase {
     private readonly decreaseStock: DecreaseStockUseCase,
   ) {}
 
-  async execute(mlOrderId: string): Promise<void> {
+  async execute(mlOrderId: string): Promise<MlOrderProcessResult> {
     const externalId = `ml-order-${mlOrderId}`;
 
     const mlOrder = await this.mlClient.getOrder(mlOrderId);
 
     if (mlOrder.status !== 'paid') {
       this.logger.log(`ML order ${mlOrderId} status=${mlOrder.status} — skipping`);
-      return;
+      return 'skipped';
     }
 
     const items: { variantId: string; quantity: number; price: number }[] = [];
 
     for (const item of mlOrder.order_items) {
-      const mlVariationId = String(item.item.variation_id ?? item.item.id);
-      const variant = await this.variantRepo.findByMlVariationId(mlVariationId);
+      const mlVariationId = item.item.variation_id == null ? null : String(item.item.variation_id);
+      const variant = await this.variantRepo.findByMlListingAndVariation(item.item.id, mlVariationId);
 
       if (!variant) {
-        this.logger.warn(`No variant found for mlVariationId=${mlVariationId} — skipping item`);
+        this.logger.warn(`No local variant mapping for mlItemId=${item.item.id} mlVariationId=${mlVariationId} — skipping item`);
         continue;
       }
 
@@ -47,7 +49,7 @@ export class HandleMlOrderUseCase {
 
     if (!items.length) {
       this.logger.warn(`ML order ${mlOrderId} has no mappable items`);
-      return;
+      return 'skipped';
     }
 
     // Create internal order — el buyer debe tener cuenta en jocoso
@@ -80,5 +82,6 @@ export class HandleMlOrderUseCase {
     }
 
     this.logger.log(`ML order ${mlOrderId} processed — stock descontado`);
+    return 'processed';
   }
 }

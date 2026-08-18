@@ -49,9 +49,8 @@ export class DecreaseStockUseCase {
 
     await this.stockRepo.decreaseWithLock(cmd.variantId, cmd.quantity, movement);
 
-    // Sync a ML cuando la venta viene del storefront web o de un ajuste admin.
-    // Las ventas ML (StockSource.ML) no se sincronizan — ML ya conoce su propio stock.
-    if (cmd.source !== StockSource.ML && this.syncQueue) {
+    // Jocoso es la fuente de verdad: toda baja local se publica en ML.
+    if (this.syncQueue) {
       await this.syncQueue.add('sync-variant', { variantId: cmd.variantId });
     }
   }

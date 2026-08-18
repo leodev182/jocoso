@@ -6,6 +6,7 @@ import { HandleMlOrderUseCase } from './handle-ml-order.usecase';
 export interface ReconcileResult {
   total: number;
   processed: number;
+  skipped: number;
   errors: number;
 }
 
@@ -26,12 +27,12 @@ export class ReconcileMlOrdersUseCase {
     const orders = await this.mlClient.searchPaidOrders(sellerId, since);
     this.logger.log(`Reconcile: encontradas ${orders.length} órdenes pagadas desde ${since.toISOString()}`);
 
-    const result: ReconcileResult = { total: orders.length, processed: 0, errors: 0 };
+    const result: ReconcileResult = { total: orders.length, processed: 0, skipped: 0, errors: 0 };
 
     for (const order of orders) {
       try {
-        await this.handleMlOrder.execute(String(order.id));
-        result.processed++;
+        const status = await this.handleMlOrder.execute(String(order.id));
+        result[status]++;
       } catch (err) {
         this.logger.error(`Reconcile: error en orden ${order.id}: ${err.message}`);
         result.errors++;

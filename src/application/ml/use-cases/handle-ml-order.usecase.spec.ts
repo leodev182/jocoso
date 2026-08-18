@@ -14,7 +14,7 @@ const mlItem = (variationId: string | null, quantity: number, price: number) => 
 });
 
 const mockMlClient = { getOrder: jest.fn() };
-const mockVariantRepo = { findByMlVariationId: jest.fn() };
+const mockVariantRepo = { findByMlListingAndVariation: jest.fn() };
 const mockOrderRepo = { save: jest.fn() };
 const mockDecreaseStock = { execute: jest.fn() };
 
@@ -33,7 +33,7 @@ describe('HandleMlOrderUseCase', () => {
     mockMlClient.getOrder.mockResolvedValue(
       mlOrder('paid', [mlItem('VAR-1', 2, 100)]),
     );
-    mockVariantRepo.findByMlVariationId.mockResolvedValue({
+    mockVariantRepo.findByMlListingAndVariation.mockResolvedValue({
       getId: () => 'variant-uuid-1',
     });
     mockOrderRepo.save.mockResolvedValue(undefined);
@@ -68,7 +68,7 @@ describe('HandleMlOrderUseCase', () => {
     mockMlClient.getOrder.mockResolvedValue(
       mlOrder('paid', [mlItem('UNKNOWN-VAR', 1, 50)]),
     );
-    mockVariantRepo.findByMlVariationId.mockResolvedValue(null);
+    mockVariantRepo.findByMlListingAndVariation.mockResolvedValue(null);
 
     await makeUseCase().execute('ml-order-789');
 
@@ -79,7 +79,7 @@ describe('HandleMlOrderUseCase', () => {
     mockMlClient.getOrder.mockResolvedValue(
       mlOrder('paid', [mlItem(null, 1, 75)]),
     );
-    mockVariantRepo.findByMlVariationId.mockResolvedValue({
+    mockVariantRepo.findByMlListingAndVariation.mockResolvedValue({
       getId: () => 'variant-uuid-2',
     });
     mockOrderRepo.save.mockResolvedValue(undefined);
@@ -87,7 +87,7 @@ describe('HandleMlOrderUseCase', () => {
 
     await makeUseCase().execute('ml-order-999');
 
-    expect(mockVariantRepo.findByMlVariationId).toHaveBeenCalledWith('ML-ITEM-1');
+    expect(mockVariantRepo.findByMlListingAndVariation).toHaveBeenCalledWith('ML-ITEM-1', null);
     expect(mockOrderRepo.save).toHaveBeenCalledTimes(1);
   });
 
@@ -98,7 +98,7 @@ describe('HandleMlOrderUseCase', () => {
         mlItem('VAR-B', 3, 20),
       ]),
     );
-    mockVariantRepo.findByMlVariationId
+    mockVariantRepo.findByMlListingAndVariation
       .mockResolvedValueOnce({ getId: () => 'uuid-a' })
       .mockResolvedValueOnce({ getId: () => 'uuid-b' });
     mockOrderRepo.save.mockResolvedValue(undefined);

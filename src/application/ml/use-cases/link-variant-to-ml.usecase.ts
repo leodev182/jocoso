@@ -2,7 +2,7 @@ import { Injectable, Inject, NotFoundException, BadRequestException, Logger } fr
 import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { IProductRepository, PRODUCT_REPOSITORY } from '../../../domain/products/repositories/product.repository';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
-import { SyncMlStockUseCase } from './sync-ml-stock.usecase';
+import { SyncLocalStockToMlUseCase } from './sync-local-stock-to-ml.usecase';
 
 @Injectable()
 export class LinkVariantToMlUseCase {
@@ -12,7 +12,7 @@ export class LinkVariantToMlUseCase {
     private readonly mlClient: MlClient,
     @Inject(PRODUCT_REPOSITORY) private readonly productRepo: IProductRepository,
     private readonly prisma: PrismaService,
-    private readonly syncMlStock: SyncMlStockUseCase,
+    private readonly syncLocalStock: SyncLocalStockToMlUseCase,
   ) {}
 
   async execute(productId: string, variantId: string, mlVariationId: string): Promise<void> {
@@ -34,7 +34,17 @@ export class LinkVariantToMlUseCase {
       data: { mlVariationId, images: variantImages },
     });
 
-    await this.syncMlStock.execute(product.getMlItemId()!);
+    const listing = await this.prisma.mlListing.upsert({
+      where: { mlItemId: product.getMlItemId()! },
+      create: { productId, mlItemId: product.getMlItemId()! },
+      update: { productId },
+    });
+    await this.prisma.mlListingVariant.upsert({
+      where: { listingId_variantId: { listingId: listing.id, variantId } },
+      create: { listingId: listing.id, variantId, mlVariationId },
+      update: { mlVariationId },
+    });
+    await this.syncLocalStock.execute(variantId);
 
     this.logger.log(`Variant ${variantId} linked to ML variation ${mlVariationId}`);
   }

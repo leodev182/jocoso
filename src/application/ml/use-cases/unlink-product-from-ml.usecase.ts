@@ -26,6 +26,7 @@ export class UnlinkProductFromMlUseCase {
       where: { productId },
       data: { mlVariationId: null },
     });
+    await this.prisma.mlListing.deleteMany({ where: { productId } });
 
     this.logger.log(`Product ${productId} unlinked from ML`);
   }
