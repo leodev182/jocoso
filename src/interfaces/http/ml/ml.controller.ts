@@ -1,7 +1,6 @@
 import {
   Controller, Get, Post, Delete, Query, Body, Param,
   HttpCode, HttpStatus, UseGuards, Logger, Redirect,
-  ValidationPipe,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -19,7 +18,6 @@ import { JwtAuthGuard } from '../../../infrastructure/security/guards/jwt-auth.g
 import { RolesGuard } from '../../../infrastructure/security/guards/roles.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../../../domain/auth/entities/user.entity';
-import { MlWebhookDto } from './dto/ml-webhook.dto';
 import { SyncProductDto } from './dto/sync-product.dto';
 import { LinkProductDto } from './dto/link-product.dto';
 import { LinkVariantDto } from './dto/link-variant.dto';
@@ -68,14 +66,19 @@ export class MlController {
   @Post('webhooks')
   @SkipThrottle() // MercadoLibre llama este endpoint — no limitar IPs externas de su infraestructura
   @HttpCode(HttpStatus.OK)
-  async webhook(
-    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }))
-    dto: MlWebhookDto,
-  ) {
-    this.logger.log(`ML webhook: topic=${dto.topic} resource=${dto.resource}`);
+  async webhook(@Body() body: Record<string, unknown>) {
+    const topic = typeof body?.topic === 'string' ? body.topic : '';
+    const resource = typeof body?.resource === 'string' ? body.resource : '';
 
-    if (dto.topic === 'orders_v2') {
-      const mlOrderId = dto.resource.split('/').pop();
+    if (!topic || !resource) {
+      this.logger.warn('ML webhook ignored: missing topic or resource');
+      return { received: true };
+    }
+
+    this.logger.log(`ML webhook: topic=${topic} resource=${resource}`);
+
+    if (topic === 'orders_v2') {
+      const mlOrderId = resource.split('/').pop();
       if (mlOrderId) {
         await this.mlOrderQueue.add(
           'process-order',
@@ -92,8 +95,8 @@ export class MlController {
       }
     }
 
-    if (dto.topic === 'items' || dto.topic === 'stock') {
-      const match = dto.resource.match(/\/items\/([^/?]+)/);
+    if (topic === 'items' || topic === 'stock') {
+      const match = resource.match(/\/items\/([^/?]+)/);
       const mlItemId = match?.[1];
       if (mlItemId) {
         await this.mlStockQueue.add(
