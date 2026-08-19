@@ -1,6 +1,7 @@
 import {
   Controller, Get, Post, Delete, Query, Body, Param,
   HttpCode, HttpStatus, UseGuards, Logger, Redirect,
+  ValidationPipe,
 } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
@@ -67,7 +68,10 @@ export class MlController {
   @Post('webhooks')
   @SkipThrottle() // MercadoLibre llama este endpoint — no limitar IPs externas de su infraestructura
   @HttpCode(HttpStatus.OK)
-  async webhook(@Body() dto: MlWebhookDto) {
+  async webhook(
+    @Body(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: false, transform: true }))
+    dto: MlWebhookDto,
+  ) {
     this.logger.log(`ML webhook: topic=${dto.topic} resource=${dto.resource}`);
 
     if (dto.topic === 'orders_v2') {
