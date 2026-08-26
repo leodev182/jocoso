@@ -7,6 +7,7 @@ import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { PrismaModule } from './infrastructure/database/prisma.module';
 import { LoggerModule } from './infrastructure/logger/logger.module';
 import { AuditModule } from './infrastructure/audit/audit.module';
+import { EmailModule } from './infrastructure/email/email.module';
 import { AuditInterceptor } from './infrastructure/audit/audit.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -48,6 +49,7 @@ import { HealthController } from './interfaces/http/health/health.controller';
     LoggerModule,
     PrismaModule,
     AuditModule,
+    EmailModule,
     AuthModule,
     StockModule,
     ProductsModule,

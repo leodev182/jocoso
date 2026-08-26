@@ -30,6 +30,6 @@ import { ProductsModule } from '../products/products.module';
     { provide: ADDRESS_REPOSITORY, useClass: AddressPrismaRepository },
     { provide: USER_REPOSITORY, useClass: UserPrismaRepository },
   ],
-  exports: [ORDER_REPOSITORY],
+  exports: [ORDER_REPOSITORY, USER_REPOSITORY],
 })
 export class OrdersModule {}

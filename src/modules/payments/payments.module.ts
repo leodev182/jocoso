@@ -13,9 +13,11 @@ import { MpWebhookValidator } from '../../integrations/mercadopago/mp-webhook.va
 import { PaymentsController } from '../../interfaces/http/payments/payments.controller';
 import { OrdersModule } from '../orders/orders.module';
 import { StockModule } from '../stock/stock.module';
+import { ProductsModule } from '../products/products.module';
+import { SendOrderConfirmationUseCase } from '../../application/email/use-cases/send-order-confirmation.usecase';
 
 @Module({
-  imports: [OrdersModule, StockModule],
+  imports: [OrdersModule, StockModule, ProductsModule],
   controllers: [PaymentsController],
   providers: [
     PaymentDomainService,
@@ -25,6 +27,7 @@ import { StockModule } from '../stock/stock.module';
     CancelPaymentUseCase,
     HandleWebhookUseCase,
     SettlePaymentUseCase,
+    SendOrderConfirmationUseCase,
     MpClient,
     MpWebhookValidator,
     { provide: PAYMENT_REPOSITORY, useClass: PaymentPrismaRepository },
