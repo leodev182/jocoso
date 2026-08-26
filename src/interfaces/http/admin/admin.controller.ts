@@ -1,5 +1,5 @@
 import {
-  Controller, Get, Patch, Body, Param, Query,
+  Controller, Get, Post, Patch, Body, Param, Query,
   UseGuards, HttpCode, HttpStatus, ParseUUIDPipe, ValidationPipe,
 } from '@nestjs/common';
 import { getEntries } from '../../../infrastructure/logging/log-store';
@@ -14,8 +14,13 @@ import { ChangeUserRoleUseCase } from '../../../application/admin/use-cases/chan
 import { SetUserActiveUseCase } from '../../../application/admin/use-cases/set-user-active.usecase';
 import { ListAuditLogsUseCase } from '../../../application/admin/use-cases/list-audit-logs.usecase';
 import { GetAdminStatsUseCase } from '../../../application/admin/use-cases/get-admin-stats.usecase';
+import { SearchClientsUseCase } from '../../../application/admin/use-cases/search-clients.usecase';
+import { CreateManualClientUseCase } from '../../../application/admin/use-cases/create-manual-client.usecase';
+import { CreateManualOrderUseCase } from '../../../application/admin/use-cases/create-manual-order.usecase';
 import { ChangeRoleDto } from './dto/change-role.dto';
 import { SetUserActiveDto } from './dto/set-user-active.dto';
+import { CreateManualClientDto } from './dto/create-manual-client.dto';
+import { CreateManualOrderDto } from './dto/create-manual-order.dto';
 
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -27,6 +32,9 @@ export class AdminController {
     private readonly setUserActive: SetUserActiveUseCase,
     private readonly listAuditLogs: ListAuditLogsUseCase,
     private readonly getStats: GetAdminStatsUseCase,
+    private readonly searchClients: SearchClientsUseCase,
+    private readonly createManualClient: CreateManualClientUseCase,
+    private readonly createManualOrder: CreateManualOrderUseCase,
   ) {}
 
   @Get('stats')
@@ -79,5 +87,22 @@ export class AdminController {
     @Query(new ValidationPipe({ transform: true, whitelist: true })) pagination?: PaginationDto,
   ) {
     return this.listAuditLogs.execute(pagination?.page, pagination?.limit, userId);
+  }
+
+  @Get('clients/search')
+  searchClientsByQuery(@Query('q') q: string) {
+    return this.searchClients.execute(q ?? '');
+  }
+
+  @Post('clients')
+  @Audit({ action: 'MANUAL_CLIENT_CREATE', resource: 'admin' })
+  createClient(@Body(new ValidationPipe({ whitelist: true })) dto: CreateManualClientDto) {
+    return this.createManualClient.execute(dto);
+  }
+
+  @Post('orders/manual')
+  @Audit({ action: 'MANUAL_ORDER_CREATE', resource: 'admin' })
+  createOrder(@Body(new ValidationPipe({ whitelist: true, transform: true })) dto: CreateManualOrderDto) {
+    return this.createManualOrder.execute(dto);
   }
 }

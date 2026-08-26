@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../database/prisma.service';
 import { IOrderRepository } from '../../domain/orders/repositories/order.repository';
-import { Order, OrderStatus, OrderProps } from '../../domain/orders/entities/order.entity';
+import { Order, OrderStatus, OrderOrigin, OrderProps } from '../../domain/orders/entities/order.entity';
 
 @Injectable()
 export class OrderPrismaRepository implements IOrderRepository {
@@ -34,7 +34,8 @@ export class OrderPrismaRepository implements IOrderRepository {
     const d = order.toPersistence();
     await this.prisma.order.create({
       data: {
-        id: d.id, userId: d.userId, addressId: d.addressId, status: d.status as any,
+        id: d.id, userId: d.userId, addressId: d.addressId,
+        status: d.status as any, origin: d.origin as any,
         totalAmount: d.totalAmount,
         items: { create: d.items.map((i) => ({ id: i.id, variantId: i.variantId, quantity: i.quantity, price: i.price })) },
       },
@@ -66,7 +67,9 @@ export class OrderPrismaRepository implements IOrderRepository {
   private toEntity(row: any): Order {
     return Order.reconstitute({
       id: row.id, userId: row.userId, addressId: row.addressId ?? null,
-      status: row.status as OrderStatus, totalAmount: Number(row.totalAmount),
+      status: row.status as OrderStatus,
+      origin: (row.origin ?? 'WEB') as OrderOrigin,
+      totalAmount: Number(row.totalAmount),
       trackingCode: row.trackingCode ?? null, shippingLabel: row.shippingLabel ?? null,
       customerNotes: row.customerNotes ?? null, adminNotes: row.adminNotes ?? null,
       items: row.items.map((i: any) => ({ id: i.id, orderId: i.orderId, variantId: i.variantId, quantity: i.quantity, price: Number(i.price) })),

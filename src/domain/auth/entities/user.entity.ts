@@ -47,6 +47,11 @@ export class User {
     return new User(crypto.randomUUID(), email.toLowerCase(), null, googleId, name, null, Role.CUSTOMER, null, false, true, now, now);
   }
 
+  static createManual(email: string, name: string, phone: string | null = null): User {
+    const now = new Date();
+    return new User(crypto.randomUUID(), email.toLowerCase(), null, null, name, phone, Role.CUSTOMER, null, false, true, now, now);
+  }
+
   static reconstitute(props: UserProps): User {
     return new User(props.id, props.email, props.passwordHash, props.googleId, props.name, props.phone, props.role, props.twoFactorSecret, props.twoFactorEnabled, props.isActive, props.createdAt, props.updatedAt);
   }

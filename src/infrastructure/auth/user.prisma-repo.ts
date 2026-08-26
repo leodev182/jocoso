@@ -35,6 +35,20 @@ export class UserPrismaRepository implements IUserRepository {
     return { users: rows.map((r) => this.toEntity(r)), total };
   }
 
+  async searchByEmailOrName(query: string, limit = 10): Promise<User[]> {
+    const rows = await this.prisma.user.findMany({
+      where: {
+        OR: [
+          { email: { contains: query, mode: 'insensitive' } },
+          { name: { contains: query, mode: 'insensitive' } },
+        ],
+      },
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+    });
+    return rows.map((r) => this.toEntity(r));
+  }
+
   async save(user: User): Promise<void> {
     const d = user.toPersistence();
     await this.prisma.user.create({

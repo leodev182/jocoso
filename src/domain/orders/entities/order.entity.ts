@@ -9,6 +9,14 @@ export enum OrderStatus {
   CANCELLED = 'CANCELLED',
 }
 
+export enum OrderOrigin {
+  WEB = 'WEB',
+  ML = 'ML',
+  CARD = 'CARD',
+  TRANSFER = 'TRANSFER',
+  CASH = 'CASH',
+}
+
 export interface OrderItemProps {
   id: string;
   orderId: string;
@@ -22,6 +30,7 @@ export interface OrderProps {
   userId: string;
   addressId: string | null;
   status: OrderStatus;
+  origin: OrderOrigin;
   totalAmount: number;
   trackingCode: string | null;
   shippingLabel: string | null;
@@ -38,6 +47,7 @@ export class Order {
     private readonly userId: string,
     private addressId: string | null,
     private status: OrderStatus,
+    private readonly origin: OrderOrigin,
     private readonly totalAmount: number,
     private trackingCode: string | null,
     private shippingLabel: string | null,
@@ -48,17 +58,22 @@ export class Order {
     private updatedAt: Date,
   ) {}
 
-  static create(userId: string, items: Omit<OrderItemProps, 'id' | 'orderId'>[], addressId: string | null = null): Order {
+  static create(
+    userId: string,
+    items: Omit<OrderItemProps, 'id' | 'orderId'>[],
+    addressId: string | null = null,
+    origin: OrderOrigin = OrderOrigin.WEB,
+  ): Order {
     const id = crypto.randomUUID();
     const now = new Date();
     const totalAmount = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
     const orderItems: OrderItemProps[] = items.map((i) => ({ id: crypto.randomUUID(), orderId: id, ...i }));
-    return new Order(id, userId, addressId, OrderStatus.PENDING, totalAmount, null, null, null, null, orderItems, now, now);
+    return new Order(id, userId, addressId, OrderStatus.PENDING, origin, totalAmount, null, null, null, null, orderItems, now, now);
   }
 
   static reconstitute(props: OrderProps): Order {
     return new Order(
-      props.id, props.userId, props.addressId, props.status, props.totalAmount,
+      props.id, props.userId, props.addressId, props.status, props.origin, props.totalAmount,
       props.trackingCode, props.shippingLabel, props.customerNotes, props.adminNotes,
       props.items, props.createdAt, props.updatedAt,
     );
@@ -68,6 +83,7 @@ export class Order {
   getUserId(): string { return this.userId; }
   getAddressId(): string | null { return this.addressId; }
   getStatus(): OrderStatus { return this.status; }
+  getOrigin(): OrderOrigin { return this.origin; }
   getTotalAmount(): number { return this.totalAmount; }
   getTrackingCode(): string | null { return this.trackingCode; }
   getShippingLabel(): string | null { return this.shippingLabel; }
@@ -97,7 +113,7 @@ export class Order {
   toPersistence(): OrderProps {
     return {
       id: this.id, userId: this.userId, addressId: this.addressId,
-      status: this.status, totalAmount: this.totalAmount,
+      status: this.status, origin: this.origin, totalAmount: this.totalAmount,
       trackingCode: this.trackingCode, shippingLabel: this.shippingLabel,
       customerNotes: this.customerNotes, adminNotes: this.adminNotes,
       items: this.items, createdAt: this.createdAt, updatedAt: this.updatedAt,

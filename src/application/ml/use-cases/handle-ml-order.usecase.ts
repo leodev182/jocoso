@@ -3,7 +3,7 @@ import { MlClient } from '../../../integrations/mercadolibre/ml.client';
 import { IProductVariantRepository, PRODUCT_VARIANT_REPOSITORY } from '../../../domain/products/repositories/product-variant.repository';
 import { IOrderRepository, ORDER_REPOSITORY } from '../../../domain/orders/repositories/order.repository';
 import { DecreaseStockUseCase } from '../../stock/use-cases/decrease-stock.usecase';
-import { Order } from '../../../domain/orders/entities/order.entity';
+import { Order, OrderOrigin } from '../../../domain/orders/entities/order.entity';
 import { StockSource, ReferenceType } from '../../../domain/stock/entities/stock-movement.entity';
 
 export type MlOrderProcessResult = 'processed' | 'skipped';
@@ -56,7 +56,7 @@ export class HandleMlOrderUseCase {
     // Si no existe (comprador solo de ML) se saltea la orden pero el stock igual baja
     let internalOrderId = externalId;
     try {
-      const order = Order.create(String(mlOrder.buyer.id), items);
+      const order = Order.create(String(mlOrder.buyer.id), items, null, OrderOrigin.ML);
       order.confirm();
       await this.orderRepo.save(order);
       internalOrderId = order.getId();

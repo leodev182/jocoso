@@ -2,7 +2,7 @@ import { NotFoundException, UnprocessableEntityException } from '@nestjs/common'
 import { Test } from '@nestjs/testing';
 import { ApprovePaymentUseCase } from './approve-payment.usecase';
 import { Payment, PaymentStatus } from '../../../domain/payments/entities/payment.entity';
-import { Order, OrderStatus } from '../../../domain/orders/entities/order.entity';
+import { Order, OrderStatus, OrderOrigin } from '../../../domain/orders/entities/order.entity';
 import { PaymentDomainService } from '../../../domain/payments/services/payment.domain.service';
 import { DecreaseStockUseCase } from '../../stock/use-cases/decrease-stock.usecase';
 import { PAYMENT_REPOSITORY } from '../../../domain/payments/repositories/payment.repository';
@@ -15,7 +15,7 @@ function pendingPayment(orderId = 'ord-1') {
 function pendingOrder(id = 'ord-1', items: any[] = []) {
   return Order.reconstitute({
     id, userId: 'u-1', addressId: null, status: OrderStatus.PENDING,
-    totalAmount: 200, trackingCode: null, shippingLabel: null,
+    origin: OrderOrigin.WEB, totalAmount: 200, trackingCode: null, shippingLabel: null,
     customerNotes: null, adminNotes: null,
     items, createdAt: new Date(), updatedAt: new Date(),
   });

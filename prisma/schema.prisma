@@ -248,11 +248,20 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum OrderOrigin {
+  WEB
+  ML
+  CARD
+  TRANSFER
+  CASH
+}
+
 model Order {
   id          String      @id @default(uuid())
   userId      String
   addressId   String?
   status      OrderStatus @default(PENDING)
+  origin      OrderOrigin @default(WEB)
   totalAmount Decimal     @db.Decimal(10, 2)
 
   trackingCode  String?

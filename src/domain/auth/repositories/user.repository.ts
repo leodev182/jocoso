@@ -5,6 +5,7 @@ export interface IUserRepository {
   findById(id: string): Promise<User | null>;
   findByGoogleId(googleId: string): Promise<User | null>;
   findAll(page: number, limit: number): Promise<{ users: User[]; total: number }>;
+  searchByEmailOrName(query: string, limit?: number): Promise<User[]>;
   save(user: User): Promise<void>;
   update(user: User): Promise<void>;
   updateRole(id: string, role: Role): Promise<void>;

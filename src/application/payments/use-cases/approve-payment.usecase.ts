@@ -57,7 +57,7 @@ export class ApprovePaymentUseCase {
         totalAmount: order.getTotalAmount(),
         items: order.getItems(),
         createdAt: order.toPersistence().createdAt,
-        paymentOrigin: 'WEB',
+        paymentOrigin: order.getOrigin() as any,
       })
       .catch((err) => this.logger.error(`Order confirmation email failed for ${order.getId()}: ${err?.message}`));
   }
