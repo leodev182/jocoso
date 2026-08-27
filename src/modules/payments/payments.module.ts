@@ -14,10 +14,11 @@ import { PaymentsController } from '../../interfaces/http/payments/payments.cont
 import { OrdersModule } from '../orders/orders.module';
 import { StockModule } from '../stock/stock.module';
 import { ProductsModule } from '../products/products.module';
+import { ConcursosModule } from '../concursos/concursos.module';
 import { SendOrderConfirmationUseCase } from '../../application/email/use-cases/send-order-confirmation.usecase';
 
 @Module({
-  imports: [OrdersModule, StockModule, ProductsModule],
+  imports: [OrdersModule, StockModule, ProductsModule, ConcursosModule],
   controllers: [PaymentsController],
   providers: [
     PaymentDomainService,

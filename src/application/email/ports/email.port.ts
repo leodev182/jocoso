@@ -1,3 +1,12 @@
+export interface ConcursoEmailInfo {
+  id: string;
+  titulo: string;
+  montoMinimo: number;
+  fechaHasta: Date | null;
+  reglasUrl: string;
+  legalesUrl: string;
+}
+
 export interface OrderConfirmationEmailData {
   orderId: string;
   customerName: string | null;
@@ -11,6 +20,7 @@ export interface OrderConfirmationEmailData {
   totalAmount: number;
   createdAt: Date;
   paymentOrigin?: 'WEB' | 'CARD' | 'TRANSFER' | 'CASH';
+  concursos?: ConcursoEmailInfo[];
 }
 
 export interface IEmailService {

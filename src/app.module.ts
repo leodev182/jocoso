@@ -9,6 +9,7 @@ import { LoggerModule } from './infrastructure/logger/logger.module';
 import { AuditModule } from './infrastructure/audit/audit.module';
 import { EmailModule } from './infrastructure/email/email.module';
 import { ImageModule } from './infrastructure/image/image.module';
+import { ConcursosModule } from './modules/concursos/concursos.module';
 import { AuditInterceptor } from './infrastructure/audit/audit.interceptor';
 import { AuthModule } from './modules/auth/auth.module';
 import { StockModule } from './modules/stock/stock.module';
@@ -52,6 +53,7 @@ import { HealthController } from './interfaces/http/health/health.controller';
     AuditModule,
     EmailModule,
     ImageModule,
+    ConcursosModule,
     AuthModule,
     StockModule,
     ProductsModule,

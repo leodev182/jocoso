@@ -1,4 +1,4 @@
-import { OrderConfirmationEmailData } from '../../application/email/ports/email.port';
+import { OrderConfirmationEmailData, ConcursoEmailInfo } from '../../application/email/ports/email.port';
 
 const ORIGIN_LABEL: Record<string, string> = {
   WEB: 'MercadoPago',
@@ -113,6 +113,8 @@ export function buildOrderConfirmationHtml(data: OrderConfirmationEmailData): st
                 </tr>
               </table>
 
+              ${data.concursos && data.concursos.length > 0 ? buildConcursosSection(data.concursos) : ''}
+
               <!-- Divider -->
               <hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:0 0 24px;" />
 
@@ -140,6 +142,35 @@ export function buildOrderConfirmationHtml(data: OrderConfirmationEmailData): st
 
 </body>
 </html>`;
+}
+
+function buildConcursosSection(concursos: ConcursoEmailInfo[]): string {
+  const items = concursos.map((c) => {
+    const hasta = c.fechaHasta
+      ? `Válido hasta ${c.fechaHasta.toLocaleDateString('es-CL', { day: '2-digit', month: 'long', year: 'numeric' })}`
+      : 'Sin fecha de cierre definida';
+    return `
+      <tr>
+        <td style="padding:12px;border-bottom:1px solid rgba(46,230,255,0.1);">
+          <p style="margin:0 0 4px;font-size:14px;font-weight:600;color:#2EE6FF;">${c.titulo}</p>
+          <p style="margin:0 0 8px;font-size:12px;color:#94a3b8;">${hasta} · Compras desde ${formatCLP(c.montoMinimo)}</p>
+          <a href="${c.reglasUrl}" style="font-size:12px;color:#2EE6FF;margin-right:16px;">Ver bases del concurso</a>
+          <a href="${c.legalesUrl}" style="font-size:12px;color:#64748b;">Términos legales</a>
+        </td>
+      </tr>`;
+  }).join('');
+
+  return `
+    <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid rgba(46,230,255,0.25);border-radius:10px;overflow:hidden;margin-bottom:24px;background:rgba(46,230,255,0.04);">
+      <thead>
+        <tr style="background:rgba(46,230,255,0.08);">
+          <th style="padding:10px 12px;text-align:left;font-size:11px;font-weight:600;color:#2EE6FF;text-transform:uppercase;letter-spacing:0.06em;">
+            🎉 ¡Tu compra participa en un concurso!
+          </th>
+        </tr>
+      </thead>
+      <tbody>${items}</tbody>
+    </table>`;
 }
 
 export function buildOrderConfirmationSubject(orderId: string): string {

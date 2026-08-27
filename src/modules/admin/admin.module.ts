@@ -17,9 +17,10 @@ import { SendOrderConfirmationUseCase } from '../../application/email/use-cases/
 import { AdminController } from '../../interfaces/http/admin/admin.controller';
 import { StockModule } from '../stock/stock.module';
 import { ProductsModule } from '../products/products.module';
+import { ConcursosModule } from '../concursos/concursos.module';
 
 @Module({
-  imports: [StockModule, ProductsModule],
+  imports: [StockModule, ProductsModule, ConcursosModule],
   controllers: [AdminController],
   providers: [
     { provide: USER_REPOSITORY, useClass: UserPrismaRepository },
