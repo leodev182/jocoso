@@ -29,11 +29,12 @@ model User {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
-  addresses     Address[]
-  orders        Order[]
-  wishlistItems WishlistItem[]
+  refreshTokens   RefreshToken[]
+  auditLogs       AuditLog[]
+  addresses       Address[]
+  orders          Order[]
+  wishlistItems   WishlistItem[]
+  participaciones Participacion[]
 
   @@index([email])
   @@index([googleId])
@@ -282,6 +283,8 @@ model Order {
   address Address?  @relation(fields: [addressId], references: [id])
   items   OrderItem[]
   payment Payment?
+  participaciones  Participacion[]
+  concursosGanados Concurso[]      @relation("GanadorConcurso")
 
   @@index([userId])
   @@index([status])
@@ -416,4 +419,53 @@ model MlListingVariant {
   @@index([variantId])
   @@index([mlVariationId])
   @@map("ml_listing_variants")
+}
+
+// ─── CONCURSOS DOMAIN ────────────────────────────────────────────────────────
+
+enum ConcursoEstado {
+  DRAFT
+  ACTIVE
+  FINISHED
+}
+
+model Concurso {
+  id                              String         @id @default(uuid())
+  titulo                          String
+  estado                          ConcursoEstado @default(DRAFT)
+  montoMinimo                     Decimal        @db.Decimal(10, 2)
+  fechaDesde                      DateTime
+  fechaHasta                      DateTime?
+  reglas                          String         @db.Text
+  legal                           String         @db.Text
+  imagenPromoUrl                  String?
+  imagenPromoActiva               Boolean        @default(false)
+  resultadoVisible                Boolean        @default(false)
+  ganadorOrdenId                  String?
+  permiteMultiplesParticipaciones Boolean        @default(true)
+  creadoEn                        DateTime       @default(now())
+  actualizadoEn                   DateTime       @updatedAt
+
+  ganadorOrden    Order?          @relation("GanadorConcurso", fields: [ganadorOrdenId], references: [id], onDelete: SetNull)
+  participaciones Participacion[]
+
+  @@index([estado])
+  @@map("concursos")
+}
+
+model Participacion {
+  id         String   @id @default(uuid())
+  concursoId String
+  ordenId    String
+  usuarioId  String
+  creadoEn   DateTime @default(now())
+
+  concurso Concurso @relation(fields: [concursoId], references: [id], onDelete: Cascade)
+  orden    Order    @relation(fields: [ordenId], references: [id])
+  usuario  User     @relation(fields: [usuarioId], references: [id])
+
+  @@unique([concursoId, ordenId])
+  @@index([concursoId])
+  @@index([usuarioId])
+  @@map("participaciones")
 }
