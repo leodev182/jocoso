@@ -12,6 +12,7 @@ export interface UpdateConcursoCommand {
   imagenPromoUrl?: string | null;
   imagenPromoActiva?: boolean;
   permiteMultiplesParticipaciones?: boolean;
+  minimoTickets?: number;
 }
 
 @Injectable()

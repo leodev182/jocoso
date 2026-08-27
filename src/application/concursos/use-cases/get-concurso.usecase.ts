@@ -26,6 +26,8 @@ export class GetConcursoUseCase {
       resultadoVisible: c.isResultadoVisible(),
       ganadorOrdenId: c.getGanadorOrdenId(),
       permiteMultiplesParticipaciones: c.permiteMultiples(),
+      minimoTickets: c.getMinimoTickets(),
+      ganadorFallbackNombre: c.getGanadorFallbackNombre(),
       creadoEn: c.getCreadoEn(),
       participantesCount: await this.participacionRepo.countByConcurso(c.getId()),
     };

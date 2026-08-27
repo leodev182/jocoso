@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsNumber, IsPositive, IsDateString, IsOptional, IsBoolean, IsUrl, MaxLength, Allow } from 'class-validator';
+import { IsString, IsNotEmpty, IsNumber, IsPositive, IsDateString, IsOptional, IsBoolean, IsUrl, MaxLength, Allow, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateConcursoDto {
@@ -42,4 +42,10 @@ export class UpdateConcursoDto {
   @IsOptional()
   @IsBoolean()
   permiteMultiplesParticipaciones?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  @Type(() => Number)
+  minimoTickets?: number;
 }

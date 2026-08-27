@@ -64,7 +64,9 @@ export class ConcursoPrismaRepository implements IConcursoRepository {
         reglas: d.reglas, legal: d.legal,
         imagenPromoUrl: d.imagenPromoUrl, imagenPromoActiva: d.imagenPromoActiva,
         resultadoVisible: d.resultadoVisible, ganadorOrdenId: d.ganadorOrdenId,
+        ganadorFallbackNombre: d.ganadorFallbackNombre,
         permiteMultiplesParticipaciones: d.permiteMultiplesParticipaciones,
+        minimoTickets: d.minimoTickets,
       },
     });
   }
@@ -79,7 +81,9 @@ export class ConcursoPrismaRepository implements IConcursoRepository {
         reglas: d.reglas, legal: d.legal,
         imagenPromoUrl: d.imagenPromoUrl, imagenPromoActiva: d.imagenPromoActiva,
         resultadoVisible: d.resultadoVisible, ganadorOrdenId: d.ganadorOrdenId,
+        ganadorFallbackNombre: d.ganadorFallbackNombre,
         permiteMultiplesParticipaciones: d.permiteMultiplesParticipaciones,
+        minimoTickets: d.minimoTickets,
       },
     });
   }
@@ -96,7 +100,9 @@ export class ConcursoPrismaRepository implements IConcursoRepository {
       imagenPromoUrl: row.imagenPromoUrl ?? null,
       imagenPromoActiva: row.imagenPromoActiva, resultadoVisible: row.resultadoVisible,
       ganadorOrdenId: row.ganadorOrdenId ?? null,
+      ganadorFallbackNombre: row.ganadorFallbackNombre ?? null,
       permiteMultiplesParticipaciones: row.permiteMultiplesParticipaciones,
+      minimoTickets: row.minimoTickets ?? 1,
       creadoEn: row.creadoEn, actualizadoEn: row.actualizadoEn,
     } as ConcursoProps);
   }

@@ -84,6 +84,7 @@ export class ConcursosController {
       imagenPromoUrl: dto.imagenPromoUrl,
       imagenPromoActiva: dto.imagenPromoActiva,
       permiteMultiplesParticipaciones: dto.permiteMultiplesParticipaciones,
+      minimoTickets: dto.minimoTickets,
     });
   }
 
@@ -107,6 +108,7 @@ export class ConcursosController {
       imagenPromoUrl: dto.imagenPromoUrl,
       imagenPromoActiva: dto.imagenPromoActiva,
       permiteMultiplesParticipaciones: dto.permiteMultiplesParticipaciones,
+      minimoTickets: dto.minimoTickets,
     });
   }
 
@@ -126,8 +128,11 @@ export class ConcursosController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
-  draw(@Param('id', ParseUUIDPipe) id: string) {
-    return this.drawWinner.execute(id);
+  draw(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body('fallbackNombre') fallbackNombre?: string,
+  ) {
+    return this.drawWinner.execute(id, fallbackNombre);
   }
 
   @Get(':id/participantes')

@@ -442,7 +442,9 @@ model Concurso {
   imagenPromoActiva               Boolean        @default(false)
   resultadoVisible                Boolean        @default(false)
   ganadorOrdenId                  String?
+  ganadorFallbackNombre           String?
   permiteMultiplesParticipaciones Boolean        @default(true)
+  minimoTickets                   Int            @default(1)
   creadoEn                        DateTime       @default(now())
   actualizadoEn                   DateTime       @updatedAt
 

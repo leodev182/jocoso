@@ -12,6 +12,7 @@ export interface CreateConcursoCommand {
   imagenPromoUrl?: string;
   imagenPromoActiva: boolean;
   permiteMultiplesParticipaciones: boolean;
+  minimoTickets: number;
 }
 
 @Injectable()
@@ -29,6 +30,7 @@ export class CreateConcursoUseCase {
       imagenPromoUrl: cmd.imagenPromoUrl ?? null,
       imagenPromoActiva: cmd.imagenPromoActiva,
       permiteMultiplesParticipaciones: cmd.permiteMultiplesParticipaciones,
+      minimoTickets: cmd.minimoTickets,
     });
     await this.repo.save(concurso);
     return { id: concurso.getId() };

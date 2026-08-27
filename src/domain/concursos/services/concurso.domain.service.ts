@@ -37,6 +37,14 @@ export class ConcursoDomainService {
     return true;
   }
 
+  assertMinimoTickets(count: number, minimo: number): void {
+    if (count < minimo) {
+      throw new UnprocessableEntityException(
+        `Se requieren al menos ${minimo} tickets para ejecutar la ruleta. Actualmente hay ${count}.`,
+      );
+    }
+  }
+
   pickWinner(participacionIds: string[]): string {
     if (participacionIds.length === 0) throw new UnprocessableEntityException('El concurso no tiene participantes');
     const idx = Math.floor(Math.random() * participacionIds.length);

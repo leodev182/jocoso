@@ -19,7 +19,9 @@ export interface ConcursoProps {
   imagenPromoActiva: boolean;
   resultadoVisible: boolean;
   ganadorOrdenId: string | null;
+  ganadorFallbackNombre: string | null;
   permiteMultiplesParticipaciones: boolean;
+  minimoTickets: number;
   creadoEn: Date;
   actualizadoEn: Date;
 }
@@ -43,19 +45,21 @@ export class Concurso {
     private imagenPromoActiva: boolean,
     private resultadoVisible: boolean,
     private ganadorOrdenId: string | null,
+    private ganadorFallbackNombre: string | null,
     private permiteMultiplesParticipaciones: boolean,
+    private minimoTickets: number,
     private readonly creadoEn: Date,
     private actualizadoEn: Date,
   ) {}
 
-  static create(props: Omit<ConcursoProps, 'id' | 'estado' | 'resultadoVisible' | 'ganadorOrdenId' | 'creadoEn' | 'actualizadoEn'>): Concurso {
+  static create(props: Omit<ConcursoProps, 'id' | 'estado' | 'resultadoVisible' | 'ganadorOrdenId' | 'ganadorFallbackNombre' | 'creadoEn' | 'actualizadoEn'>): Concurso {
     const now = new Date();
     return new Concurso(
       crypto.randomUUID(), props.titulo, ConcursoEstado.DRAFT,
       props.montoMinimo, props.fechaDesde, props.fechaHasta,
       props.reglas, props.legal, props.imagenPromoUrl,
-      props.imagenPromoActiva, false, null,
-      props.permiteMultiplesParticipaciones, now, now,
+      props.imagenPromoActiva, false, null, null,
+      props.permiteMultiplesParticipaciones, props.minimoTickets, now, now,
     );
   }
 
@@ -64,7 +68,8 @@ export class Concurso {
       props.id, props.titulo, props.estado, props.montoMinimo,
       props.fechaDesde, props.fechaHasta, props.reglas, props.legal,
       props.imagenPromoUrl, props.imagenPromoActiva, props.resultadoVisible,
-      props.ganadorOrdenId, props.permiteMultiplesParticipaciones,
+      props.ganadorOrdenId, props.ganadorFallbackNombre,
+      props.permiteMultiplesParticipaciones, props.minimoTickets,
       props.creadoEn, props.actualizadoEn,
     );
   }
@@ -81,7 +86,9 @@ export class Concurso {
   isImagenPromoActiva(): boolean { return this.imagenPromoActiva; }
   isResultadoVisible(): boolean { return this.resultadoVisible; }
   getGanadorOrdenId(): string | null { return this.ganadorOrdenId; }
+  getGanadorFallbackNombre(): string | null { return this.ganadorFallbackNombre; }
   permiteMultiples(): boolean { return this.permiteMultiplesParticipaciones; }
+  getMinimoTickets(): number { return this.minimoTickets; }
   getCreadoEn(): Date { return this.creadoEn; }
 
   update(fields: Partial<Omit<ConcursoProps, 'id' | 'estado' | 'creadoEn' | 'actualizadoEn'>>): void {
@@ -94,8 +101,10 @@ export class Concurso {
     if (fields.imagenPromoUrl !== undefined) this.imagenPromoUrl = fields.imagenPromoUrl;
     if (fields.imagenPromoActiva !== undefined) this.imagenPromoActiva = fields.imagenPromoActiva;
     if (fields.permiteMultiplesParticipaciones !== undefined) this.permiteMultiplesParticipaciones = fields.permiteMultiplesParticipaciones;
+    if (fields.minimoTickets !== undefined) this.minimoTickets = fields.minimoTickets;
     if (fields.resultadoVisible !== undefined) this.resultadoVisible = fields.resultadoVisible;
     if (fields.ganadorOrdenId !== undefined) this.ganadorOrdenId = fields.ganadorOrdenId;
+    if (fields.ganadorFallbackNombre !== undefined) this.ganadorFallbackNombre = fields.ganadorFallbackNombre;
     this.touch();
   }
 
@@ -104,6 +113,14 @@ export class Concurso {
 
   setGanador(ordenId: string): void {
     this.ganadorOrdenId = ordenId;
+    this.ganadorFallbackNombre = null;
+    this.resultadoVisible = true;
+    this.touch();
+  }
+
+  setGanadorFallback(nombre: string): void {
+    this.ganadorFallbackNombre = nombre;
+    this.ganadorOrdenId = null;
     this.resultadoVisible = true;
     this.touch();
   }
@@ -126,7 +143,9 @@ export class Concurso {
       fechaHasta: this.fechaHasta, reglas: this.reglas, legal: this.legal,
       imagenPromoUrl: this.imagenPromoUrl, imagenPromoActiva: this.imagenPromoActiva,
       resultadoVisible: this.resultadoVisible, ganadorOrdenId: this.ganadorOrdenId,
+      ganadorFallbackNombre: this.ganadorFallbackNombre,
       permiteMultiplesParticipaciones: this.permiteMultiplesParticipaciones,
+      minimoTickets: this.minimoTickets,
       creadoEn: this.creadoEn, actualizadoEn: this.actualizadoEn,
     };
   }
