@@ -18,7 +18,7 @@ export class SyncParticipacionesUseCase {
 
     const orders = await this.prisma.order.findMany({
       where: {
-        status: 'CONFIRMED',
+        status: { in: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'COMPLETED'] as any[] },
         origin: { not: 'ML' as any },
         totalAmount: { gte: concurso.getMontoMinimo() },
         createdAt: {

@@ -41,7 +41,7 @@ export class ChangeEstadoConcursoUseCase {
   private async syncParticipaciones(concursoId: string, montoMinimo: number, fechaDesde: Date, fechaHasta: Date | null): Promise<void> {
     const orders = await this.prisma.order.findMany({
       where: {
-        status: 'CONFIRMED',
+        status: { in: ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'COMPLETED'] as any[] },
         origin: { not: 'ML' as any },
         totalAmount: { gte: montoMinimo },
         createdAt: {
