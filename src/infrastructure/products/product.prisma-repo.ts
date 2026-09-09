@@ -33,7 +33,7 @@ export class ProductPrismaRepository implements IProductRepository {
     if (featured !== undefined) where.featured = featured;
     if (search) where.title = { contains: search, mode: 'insensitive' };
     if (tagSlug) where.tags = { some: { tag: { slug: tagSlug, isActive: true } } };
-    const [rows, total] = await this.prisma.$transaction([
+    const [rows, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
         orderBy: { createdAt: 'desc' },
