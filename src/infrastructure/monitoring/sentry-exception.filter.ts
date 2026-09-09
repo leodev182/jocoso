@@ -7,6 +7,10 @@ export class SentryExceptionFilter extends BaseExceptionFilter {
   override catch(exception: unknown, host: ArgumentsHost): void {
     const status = exception instanceof HttpException ? exception.getStatus() : 500;
     if (status >= 500) Sentry.captureException(exception);
-    super.catch(exception, host);
+    try {
+      super.catch(exception, host);
+    } catch {
+      // host context inválido (bots, requests malformadas) — ignorar silenciosamente
+    }
   }
 }
