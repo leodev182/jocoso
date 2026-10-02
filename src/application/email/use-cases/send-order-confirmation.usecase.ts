@@ -77,5 +77,17 @@ export class SendOrderConfirmationUseCase {
       paymentOrigin: input.paymentOrigin,
       concursos,
     });
+
+    // Notificación interna al dueño — no bloquea ni lanza
+    this.email.sendOwnerOrderNotification({
+      orderId: input.orderId,
+      customerName: user.getName(),
+      customerEmail: user.getEmail(),
+      customerPhone: user.getPhone(),
+      totalAmount: input.totalAmount,
+      createdAt: input.createdAt,
+      paymentOrigin: input.paymentOrigin,
+      items: enrichedItems,
+    }).catch(() => {});
   }
 }

@@ -20,7 +20,7 @@ export class ListParticipantesUseCase {
     return Promise.all(
       participaciones.map(async (p) => {
         const [user, order] = await Promise.all([
-          this.prisma.user.findUnique({ where: { id: p.getUsuarioId() }, select: { name: true, email: true } }),
+          this.prisma.user.findUnique({ where: { id: p.getUsuarioId() }, select: { name: true, email: true, phone: true } }),
           this.prisma.order.findUnique({ where: { id: p.getOrdenId() }, select: { totalAmount: true, createdAt: true, origin: true } }),
         ]);
         return {
@@ -30,6 +30,7 @@ export class ListParticipantesUseCase {
           creadoEn: p.getCreadoEn(),
           clienteNombre: user?.name ?? null,
           clienteEmail: user?.email ?? null,
+          clientePhone: user?.phone ?? null,
           ordenTotal: order ? Number(order.totalAmount) : null,
           ordenFecha: order?.createdAt ?? null,
           ordenOrigen: order?.origin ?? null,

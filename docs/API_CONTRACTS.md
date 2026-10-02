@@ -1,6 +1,6 @@
 # Jocoso.cl — Contratos de API
 
-Base URL: `https://api.jocoso.cl/api/v1`  
+Base URL: `https://backend.jocoso.cl/api/v1`
 Autenticación: `Authorization: Bearer <accessToken>` en todos los endpoints protegidos.
 
 ---
@@ -10,7 +10,7 @@ Autenticación: `Authorization: Bearer <accessToken>` en todos los endpoints pro
 - [Conceptos clave](#conceptos-clave)
 - [Autenticación — compartida](#autenticación--compartida-admin--web)
 - [WEB — jocoso.cl (Astro)](#web--jocosocl-astro)
-- [ADMIN — admin.jocoso.cl (Angular)](#admin--adminjocosocl-angular)
+- [ADMIN — ops.jocoso.cl (Angular)](#admin--opsjocoso-cl-angular)
 - [Webhooks externos (MP y ML)](#webhooks-externos-no-llaman-los-fronts)
 - [Producto → MercadoLibre: cómo se relacionan](#producto--mercadolibre-cómo-se-relacionan)
 - [Flujo de login: Customer vs Admin](#flujo-de-login-customer-vs-admin)
@@ -265,7 +265,7 @@ Requiere: `Authorization: Bearer`
 
 ---
 
-## ADMIN — admin.jocoso.cl (Angular)
+## ADMIN — ops.jocoso.cl (Angular)
 
 Endpoints exclusivos de roles `ADMIN` y `SUPPORT`. El login es el mismo `POST /auth/login` — Angular detecta `role: "ADMIN"` en la respuesta y activa el panel.
 
@@ -424,7 +424,7 @@ Roles: `ADMIN`
 ---
 
 #### `POST /ml/products/:productId/sync`
-Publica un producto existente en MercadoLibre. Guarda `mlItemId` y `mlVariationId` en la DB.  
+Publica un producto existente en MercadoLibre. Guarda la publicación en `MlListing` y sus relaciones de variantes en `MlListingVariant`; conserva los campos legacy `mlItemId` y `mlVariationId` para compatibilidad.
 Roles: `ADMIN`
 
 **Request**
@@ -450,33 +450,32 @@ Estos endpoints los llaman MercadoPago y MercadoLibre, no el frontend.
 | Endpoint | Caller | Descripción |
 |---|---|---|
 | `POST /payments/webhook` | MercadoPago | Notifica aprobación/rechazo de pago |
-| `POST /ml/webhooks` | MercadoLibre | Notifica nueva venta en ML |
+| `POST /ml/webhooks` | MercadoLibre | Notifica órdenes y cambios de publicaciones ML |
 
 ---
 
 ## Producto → MercadoLibre: cómo se relacionan
 
 ```
-[Admin crea producto]          [Admin sincroniza a ML]
-POST /products          →      POST /ml/products/:id/sync
-     ↓                                   ↓
- id: "uuid"                    Publica en ML API
- mlItemId: null                Recibe mlItemId + mlVariationId
- mlVariationId: null           Los persiste en la DB
-                                         ↓
-                               Producto ahora tiene:
-                               mlItemId: "MLC123456"
-                               mlVariationId: "987654321"
+[Producto local]                 [Una o más publicaciones ML]
+id: "uuid"             ←→       MlListing.mlItemId
+variante: "uuid"       ←→       MlListingVariant.mlVariationId|null
+stock: 8                         available_quantity: 8
 ```
 
 **Por qué el flujo es así:**
 
 1. **ML no es la fuente de verdad** — el sistema interno es el maestro. ML es un canal de venta.
 2. Puedes tener productos sin ML (venta solo web) y productos con ML (multicanal).
-3. Una vez sincronizado, el puente queda establecido por `mlVariationId`:
-   - Cuando baja el stock en tu sistema → el backend actualiza ML automáticamente.
-   - Cuando llega una venta desde ML (webhook) → el backend busca la variante por `mlVariationId`, crea la orden interna y descuenta el stock.
+3. Una vez sincronizado, el puente queda establecido por `mlItemId + mlVariationId` dentro de `MlListingVariant`:
+   - Cuando cambia el stock local → BullMQ actualiza todas las publicaciones asociadas.
+   - Cuando llega una venta `orders_v2` desde ML → el backend identifica la publicación y variante, descuenta localmente una sola vez y vuelve a publicar el stock local.
+   - Cuando llega un evento `items`/`stock` → se usa como señal externa para reafirmar el stock maestro local; no convierte a ML en la fuente de verdad.
 4. El stock siempre se mueve en el sistema interno primero. ML refleja lo que tu sistema dice.
+
+### Múltiples publicaciones ML
+
+Un mismo producto local puede tener varias publicaciones ML, incluso si ML las presenta como publicaciones sincronizadas. En Ops se agrega una segunda publicación con **Agregar publicación**; no se debe usar **Desvincular todas** para reemplazarla. Cada publicación debe mapearse a la variante local correcta. La migración `20260818140000_add_ml_listings` crea aliases para vínculos existentes, pero publicaciones adicionales requieren asociación manual.
 
 ---
 
@@ -499,7 +498,7 @@ POST /products          →      POST /ml/products/:id/sync
             │                             │
        role: CUSTOMER               role: ADMIN / SUPPORT
             │                             │
-     jocoso.cl (Astro)         admin.jocoso.cl (Angular)
+      jocoso.cl (Astro)         ops.jocoso.cl (Angular)
      Accede a catálogo,         Accede a dashboard,
      órdenes propias,           productos, stock,
      checkout                   reportes, ML sync
@@ -512,6 +511,6 @@ No. El login de customers y admins es 100% propio (email + password + JWT). Merc
 
 El customer nunca interactúa con ML directamente. Compra en jocoso.cl → paga con MercadoPago → listo.
 
-**Google OAuth** — no está implementado aún. Se puede agregar como estrategia adicional de Passport sin tocar la lógica actual.
+**Google OAuth** — está implementado mediante `POST /auth/google`; el backend verifica el ID token con Google, busca o crea/vincula el usuario y devuelve la sesión JWT/refresh.
 
 **2FA** — disponible para cualquier rol. Recomendado activarlo para cuentas ADMIN.

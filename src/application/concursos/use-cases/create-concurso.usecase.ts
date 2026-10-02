@@ -1,6 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Concurso } from '../../../domain/concursos/entities/concurso.entity';
 import { IConcursoRepository, CONCURSO_REPOSITORY } from '../../../domain/concursos/repositories/concurso.repository';
+import { IEmailService, EMAIL_SERVICE } from '../../email/ports/email.port';
 
 export interface CreateConcursoCommand {
   titulo: string;
@@ -17,7 +18,10 @@ export interface CreateConcursoCommand {
 
 @Injectable()
 export class CreateConcursoUseCase {
-  constructor(@Inject(CONCURSO_REPOSITORY) private readonly repo: IConcursoRepository) {}
+  constructor(
+    @Inject(CONCURSO_REPOSITORY) private readonly repo: IConcursoRepository,
+    @Inject(EMAIL_SERVICE) private readonly email: IEmailService,
+  ) {}
 
   async execute(cmd: CreateConcursoCommand): Promise<{ id: string }> {
     const concurso = Concurso.create({
@@ -33,6 +37,16 @@ export class CreateConcursoUseCase {
       minimoTickets: cmd.minimoTickets,
     });
     await this.repo.save(concurso);
+
+    this.email.sendOwnerConcursoNotification({
+      event: 'created',
+      concursoId: concurso.getId(),
+      concursoTitulo: concurso.getTitulo(),
+      fechaDesde: concurso.getFechaDesde(),
+      fechaHasta: concurso.getFechaHasta(),
+      montoMinimo: concurso.getMontoMinimo(),
+    }).catch(() => {});
+
     return { id: concurso.getId() };
   }
 }

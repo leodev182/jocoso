@@ -6,6 +6,7 @@ import { ConcursoDomainService } from '../../../domain/concursos/services/concur
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { Participacion } from '../../../domain/concursos/entities/participacion.entity';
 import { OrderOrigin } from '../../../domain/orders/entities/order.entity';
+import { IEmailService, EMAIL_SERVICE } from '../../email/ports/email.port';
 
 @Injectable()
 export class ChangeEstadoConcursoUseCase {
@@ -14,6 +15,7 @@ export class ChangeEstadoConcursoUseCase {
     @Inject(PARTICIPACION_REPOSITORY) private readonly participacionRepo: IParticipacionRepository,
     private readonly domainService: ConcursoDomainService,
     private readonly prisma: PrismaService,
+    @Inject(EMAIL_SERVICE) private readonly email: IEmailService,
   ) {}
 
   async execute(id: string, nuevoEstado: ConcursoEstado): Promise<void> {
@@ -31,11 +33,62 @@ export class ChangeEstadoConcursoUseCase {
     if (nuevoEstado === ConcursoEstado.FINISHED) {
       concurso.finalizar();
       await this.concursoRepo.update(concurso);
-      // Purgar el más antiguo si se supera el límite de histórico
       const finished = await this.concursoRepo.findFinishedOrderedByOldest();
       const toPurge = this.domainService.getConcursoToPurge(finished);
       if (toPurge) await this.concursoRepo.delete(toPurge.getId());
+
+      // Emails post-finalización (no bloquean)
+      this.notifyFinished(concurso.getId(), concurso.getTitulo(), concurso.getFechaDesde(), concurso.getFechaHasta(), concurso.getMontoMinimo(), concurso.getGanadorOrdenId(), concurso.getGanadorFallbackNombre()).catch(() => {});
     }
+  }
+
+  private async notifyFinished(
+    concursoId: string,
+    titulo: string,
+    fechaDesde: Date,
+    fechaHasta: Date | null,
+    montoMinimo: number,
+    ganadorOrdenId: string | null,
+    ganadorFallbackNombre: string | null,
+  ): Promise<void> {
+    let ganadorNombre: string | null = null;
+    let ganadorEmail: string | null = null;
+    let ganadorPhone: string | null = null;
+
+    if (ganadorOrdenId) {
+      const order = await this.prisma.order.findUnique({
+        where: { id: ganadorOrdenId },
+        select: { user: { select: { name: true, email: true, phone: true } } },
+      });
+      if (order?.user) {
+        ganadorNombre = order.user.name ?? null;
+        ganadorEmail = order.user.email;
+        ganadorPhone = order.user.phone ?? null;
+
+        // Email al ganador
+        await this.email.sendConcursoGanador({
+          customerName: ganadorNombre,
+          customerEmail: ganadorEmail,
+          concursoTitulo: titulo,
+          ordenId: ganadorOrdenId,
+        }).catch(() => {});
+      }
+    }
+
+    // Notificación al dueño
+    await this.email.sendOwnerConcursoNotification({
+      event: 'finished',
+      concursoId,
+      concursoTitulo: titulo,
+      fechaDesde,
+      fechaHasta,
+      montoMinimo,
+      ganadorNombre,
+      ganadorEmail,
+      ganadorPhone,
+      ganadorOrdenId,
+      ganadorFallbackNombre,
+    });
   }
 
   private async syncParticipaciones(concursoId: string, montoMinimo: number, fechaDesde: Date, fechaHasta: Date | null): Promise<void> {
