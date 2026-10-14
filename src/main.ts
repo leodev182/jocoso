@@ -1,4 +1,4 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, HttpAdapterHost } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from 'nestjs-pino';
@@ -34,7 +34,8 @@ async function bootstrap() {
   );
 
   app.useLogger(app.get(Logger));
-  app.useGlobalFilters(new SentryExceptionFilter());
+  // BaseExceptionFilter necesita el httpAdapter; sin él no envía respuesta y los errores quedan colgados
+  app.useGlobalFilters(new SentryExceptionFilter(app.get(HttpAdapterHost).httpAdapter));
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Jocoso API')
