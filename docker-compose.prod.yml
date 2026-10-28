@@ -71,6 +71,7 @@ services:
       - certbot_conf:/etc/letsencrypt
     # Renueva el certificado automáticamente cada 12 horas
     entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+    restart: unless-stopped
 
 volumes:
   postgres_data:
